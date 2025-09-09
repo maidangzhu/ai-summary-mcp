@@ -9,56 +9,48 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DIRECT_URL")
 }
 
 // AI协作档案分析结果模型
 model AnalysisResult {
-  id                String   @id @default(cuid())
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   // 基本信息
-  title             String?
-  chatContent       String   @db.Text
-  
+  title       String?
+  chatContent String  @db.Text
   // 技术栈分析
-  primaryStack      String?
-  
+  primaryStack String?
   // 业务分析
-  business          String?
-  
+  business String?
   // 标签分析
-  tags              String[] @default([])
-  
+  tags String[] @default([])
   // AI思考分析
-  keyQuestions      String[] @default([])
-  
+  keyQuestions String[] @default([])
   // 总结
-  summary           String?  @db.Text
-  
+  summary String? @db.Text
   // 关联的问题分类
-  problems          ProblemClassification[]
-  
+  problems ProblemClassification[]
+
   @@map("analysis_results")
 }
 
 // 问题分类模型
 model ProblemClassification {
-  id              String   @id @default(cuid())
-  createdAt       DateTime @default(now())
+  id               String   @id @default(cuid())
+  createdAt        DateTime @default(now())
   analysisResultId String
-  
-  category        String
-  subCategory     String?
-  severity        String
-  complexity      String
-  estimatedTime   String
-  tags            String[] @default([])
-  reasoning       String   @db.Text
-  
-  analysisResult  AnalysisResult @relation(fields: [analysisResultId], references: [id], onDelete: Cascade)
-  
+  category      String
+  subCategory   String?
+  severity      String
+  complexity    String
+  estimatedTime String
+  tags          String[] @default([])
+  reasoning     String   @db.Text
+
+  analysisResult AnalysisResult @relation(fields: [analysisResultId], references: [id], onDelete: Cascade)
+
   @@map("problem_classifications")
 }
