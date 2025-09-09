@@ -166,7 +166,6 @@ export interface ComprehensiveAnalysisResult {
   solutions?: SolutionAnalysis;
   summary?: SummaryAnalysis;
   focusAreas: string[];
-  markdown: string;
 }
 
 // AI API响应接口

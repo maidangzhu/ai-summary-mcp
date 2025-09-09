@@ -430,8 +430,7 @@ export class ComprehensiveAnalyzer {
 
     // 构建结果对象
     const analysisResult: ComprehensiveAnalysisResult = {
-      focusAreas: [],
-      markdown: ''
+      focusAreas: []
     };
 
     // 处理分析结果

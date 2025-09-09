@@ -91,9 +91,8 @@ export const saveAnalysisResult = async (
         opportunities: result.summary?.opportunities || [],
         summaryReasoning: result.summary?.reasoning,
         
-        // 关注领域和Markdown报告
+        // 关注领域
         focusAreas: result.focusAreas,
-        markdownReport: result.markdown,
         
         // 创建关联的问题分类
         problems: {

@@ -81,9 +81,6 @@ model AnalysisResult {
   // 关注领域
   focusAreas        String[] @default([])
   
-  // 生成的Markdown报告
-  markdownReport    String   @db.Text
-  
   // 关联的问题分类
   problems          ProblemClassification[]
   

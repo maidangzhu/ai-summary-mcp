@@ -29,7 +29,6 @@
     "business-analysis",
     "problem-classification",
     "solution-extraction",
-    "markdown-generator",
     "deepseek",
     "openai",
     "claude"
@@ -44,36 +43,6 @@
   "homepage": "https://github.com/your-username/ai-collaboration-archive-analyzer#readme",
   "bugs": {
     "url": "https://github.com/your-username/ai-collaboration-archive-analyzer/issues"
-  },
-  "mcp": {
-    "server": {
-      "name": "ai-collaboration-archive-analyzer",
-      "version": "3.0.0",
-      "description": "AI协作档案分析器 - 六维度智能分析系统",
-      "capabilities": {
-        "tools": [
-          "chat_summary",
-          "quick_analysis",
-          "configure_ai",
-          "get_ai_config",
-          "reset_config"
-        ],
-        "features": [
-          "六维度分析系统",
-          "多AI提供商支持",
-          "配置热更新",
-          "并行处理",
-          "错误容错",
-          "Markdown报告生成"
-        ]
-      },
-      "supportedProviders": [
-        "deepseek",
-        "openai",
-        "claude",
-        "custom"
-      ]
-    }
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.4",

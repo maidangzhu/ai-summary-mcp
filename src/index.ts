@@ -62,25 +62,6 @@ interface ProblemClassification {
 	reasoning: string;
 }
 
-interface ChatSummaryResult {
-	focusAreas: string[];
-	thoughts: string[];
-	solvedProblems: string[];
-	techStackAnalysis?: TechStackAnalysis;
-	problemClassifications?: ProblemClassification[];
-	markdown: string;
-}
-
-interface DeepSeekResponse {
-	choices: {
-		message: {
-			content: string;
-		};
-	}[];
-}
-
-// 导入模块
-import { ComprehensiveAnalysisResult } from "./types.js";
 import {
 	loadConfig,
 	saveConfig,
@@ -90,7 +71,7 @@ import {
 } from "./config.js";
 import { getAIService } from "./ai-service.js";
 import { ComprehensiveAnalyzer } from "./analyzers.js";
-import { getMarkdownGenerator } from "./markdown-generator.js";
+
 import { 
 	saveAnalysisResult, 
 	closeDatabaseConnection,
@@ -114,25 +95,7 @@ const server = new Server(
 	}
 );
 
-// 保存Markdown文件的函数
-const saveMarkdownFile = async (
-	content: string,
-	filename?: string
-): Promise<string> => {
-	const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-	const fileName = filename || `analysis-${timestamp}.md`;
-	const documentsDir = path.join(process.cwd(), ".trae", "documents");
 
-	try {
-		await fs.mkdir(documentsDir, { recursive: true });
-		const filePath = path.join(documentsDir, fileName);
-		await fs.writeFile(filePath, content, "utf-8");
-		return filePath;
-	} catch (error) {
-		console.error("保存文件时出错:", error);
-		throw error;
-	}
-};
 
 // 注册工具
 server.setRequestHandler(ListToolsRequestSchema, async () => {
@@ -390,19 +353,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 					solutionsCount: result.solutions?.solutionApproaches?.length || 0
 				});
 
-				// 生成Markdown报告
-				console.log('📄 生成Markdown报告...');
-				const markdownGenerator = getMarkdownGenerator();
-				const markdown = markdownGenerator.generateComprehensiveMarkdown(
-					result,
-					chatContent
-				);
-				console.log(`📄 Markdown报告生成完成，长度: ${markdown.length} 字符`);
-
-				// 保存文件
-				console.log('💾 保存Markdown文件...');
-				const filePath = await saveMarkdownFile(markdown, filename);
-				console.log(`✅ 文件保存成功: ${filePath}`);
+				// 分析完成
+				console.log('✅ 分析完成');
 
 				// 保存到数据库
 				console.log('🗄️  开始保存到数据库...');
@@ -419,17 +371,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 				}
 
 				return {
-					content: [
-						{
-							type: "text",
-							text: `✅ 综合分析完成！\n\n📊 **分析结果概览**:\n${markdownGenerator.generateStatistics(
-								result
-							)}\n📁 **文件已保存**: ${filePath}\n\n🔍 **快速预览**:\n${markdownGenerator.generateSimpleReport(
-								result
-							)}`,
-						},
-					],
-				};
+				content: [
+					{
+						type: "text",
+						text: `✅ 综合分析完成！\n\n📊 **分析结果概览**:\n技术栈: ${result.techStack?.primaryStack || '未识别'}\n业务领域: ${result.business?.domain || '未识别'}\n问题数量: ${result.problems?.length || 0}\n解决方案数量: ${result.solutions?.solutionApproaches?.length || 0}\n\n数据已保存到数据库中，可通过其他工具查询。`,
+					},
+				],
+			};
 			}
 
 			case "update_ai_config": {
@@ -544,15 +492,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 				// 执行快速分析
 				const result = await analyzer.analyze(chatContent);
 
-				// 生成简化报告
-				const markdownGenerator = getMarkdownGenerator();
-				const quickReport = markdownGenerator.generateSimpleReport(result);
-
+				// 返回快速分析结果
 				return {
 					content: [
 						{
 							type: "text",
-							text: `⚡ **快速分析结果**:\n\n${quickReport}`,
+							text: `⚡ **快速分析完成**\n\n技术栈: ${result.techStack?.primaryStack || '未识别'}\n业务领域: ${result.business?.domain || '未识别'}\n问题数量: ${result.problems?.length || 0}\n解决方案数量: ${result.solutions?.solutionApproaches?.length || 0}`,
 						},
 					],
 				};
@@ -571,13 +516,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 				}
 
 				return {
-					content: [
-						{
-							type: "text",
-							text: `📊 **分析结果详情**:\n\n**ID**: ${result.id}\n**创建时间**: ${result.createdAt.toLocaleString()}\n**文件名**: ${result.filename || '未指定'}\n**技术栈**: ${result.primaryStack || '未识别'}\n**业务领域**: ${result.businessDomain || '未识别'}\n**优先级**: ${result.priority || '未设置'}\n\n**Markdown报告**:\n\n${result.markdownReport}`,
-						},
-					],
-				};
+				content: [
+					{
+						type: "text",
+						text: `📊 **分析结果详情**:\n\n**ID**: ${result.id}\n**创建时间**: ${result.createdAt.toLocaleString()}\n**文件名**: ${result.filename || '未指定'}\n**技术栈**: ${result.primaryStack || '未识别'}\n**业务领域**: ${result.businessDomain || '未识别'}\n**优先级**: ${result.priority || '未设置'}`,
+					},
+				],
+			};
 			}
 
 			case "list_analysis_results": {
