@@ -1,0 +1,110 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DIRECT_URL")
+}
+
+// AI协作档案分析结果模型
+model AnalysisResult {
+  id                String   @id @default(cuid())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // 基本信息
+  filename          String?
+  chatContent       String   @db.Text
+  
+  // 技术栈分析
+  primaryStack      String?
+  secondaryStacks   String[] @default([])
+  technologies      String[] @default([])
+  frameworks        String[] @default([])
+  tools             String[] @default([])
+  techConfidence    Float?
+  techReasoning     String?  @db.Text
+  
+  // 业务分析
+  businessDomain    String?
+  subDomains        String[] @default([])
+  businessGoals     String[] @default([])
+  userTypes         String[] @default([])
+  valueProposition  String?  @db.Text
+  marketContext     String?  @db.Text
+  businessConfidence Float?
+  businessReasoning String?  @db.Text
+  
+  // 标签分析
+  primaryTags       String[] @default([])
+  customTags        String[] @default([])
+  priority          String?
+  urgency           String?
+  complexity        String?
+  tagReasoning      String?  @db.Text
+  
+  // AI思考分析
+  keyQuestions      String[] @default([])
+  reasoningProcess  String[] @default([])
+  assumptions       String[] @default([])
+  alternatives      String[] @default([])
+  recommendations   String[] @default([])
+  uncertainties     String[] @default([])
+  aiThoughtReasoning String? @db.Text
+  
+  // 解决方案分析
+  problemsSolved    String[] @default([])
+  solutionApproaches String[] @default([])
+  implementationSteps String[] @default([])
+  challenges        String[] @default([])
+  outcomes          String[] @default([])
+  lessonsLearned    String[] @default([])
+  solutionReasoning String?  @db.Text
+  
+  // 总结分析
+  keyPoints         String[] @default([])
+  mainAchievements  String[] @default([])
+  nextSteps         String[] @default([])
+  actionItems       String[] @default([])
+  decisions         String[] @default([])
+  risks             String[] @default([])
+  opportunities     String[] @default([])
+  summaryReasoning  String?  @db.Text
+  
+  // 关注领域
+  focusAreas        String[] @default([])
+  
+  // 生成的Markdown报告
+  markdownReport    String   @db.Text
+  
+  // 关联的问题分类
+  problems          ProblemClassification[]
+  
+  @@map("analysis_results")
+}
+
+// 问题分类模型
+model ProblemClassification {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  analysisResultId String
+  
+  category        String
+  subCategory     String?
+  severity        String
+  complexity      String
+  estimatedTime   String
+  tags            String[] @default([])
+  reasoning       String   @db.Text
+  
+  analysisResult  AnalysisResult @relation(fields: [analysisResultId], references: [id], onDelete: Cascade)
+  
+  @@map("problem_classifications")
+}

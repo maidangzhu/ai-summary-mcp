@@ -1,27 +1,86 @@
 {
-  "name": "first-mcp",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "ai-collaboration-archive-analyzer",
+  "version": "3.0.0",
+  "description": "AI协作档案分析器 - 六维度智能分析系统，支持技术栈、业务、标签、AI思考、问题分类、解决方案等多维度分析",
+  "main": "build/index.js",
   "type": "module",
-
   "bin": {
-    "chat-summary": "./build/index.js"
+    "ai-collaboration-analyzer": "./build/index.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc && chmod 755 build/index.js",
     "watch": "tsc --watch",
     "start": "node build/index.js",
-    "chat-summary": "node build/index.js"
+    "dev": "pnpm run build && pnpm run start",
+    "clean": "rm -rf build"
   },
-  "files": ["build"],
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "files": [
+    "build",
+    "README.md"
+  ],
+  "keywords": [
+    "mcp",
+    "ai",
+    "analysis",
+    "collaboration",
+    "archive",
+    "tech-stack",
+    "business-analysis",
+    "problem-classification",
+    "solution-extraction",
+    "markdown-generator",
+    "deepseek",
+    "openai",
+    "claude"
+  ],
+  "author": "AI协作档案分析器团队",
+  "license": "MIT",
   "packageManager": "pnpm@10.8.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/ai-collaboration-archive-analyzer.git"
+  },
+  "homepage": "https://github.com/your-username/ai-collaboration-archive-analyzer#readme",
+  "bugs": {
+    "url": "https://github.com/your-username/ai-collaboration-archive-analyzer/issues"
+  },
+  "mcp": {
+    "server": {
+      "name": "ai-collaboration-archive-analyzer",
+      "version": "3.0.0",
+      "description": "AI协作档案分析器 - 六维度智能分析系统",
+      "capabilities": {
+        "tools": [
+          "chat_summary",
+          "quick_analysis",
+          "configure_ai",
+          "get_ai_config",
+          "reset_config"
+        ],
+        "features": [
+          "六维度分析系统",
+          "多AI提供商支持",
+          "配置热更新",
+          "并行处理",
+          "错误容错",
+          "Markdown报告生成"
+        ]
+      },
+      "supportedProviders": [
+        "deepseek",
+        "openai",
+        "claude",
+        "custom"
+      ]
+    }
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.4",
+    "@prisma/client": "^6.15.0",
+    "dotenv": "^17.2.2",
+    "pg": "^8.16.3",
+    "prisma": "^6.15.0",
     "zod": "3"
   },
   "devDependencies": {

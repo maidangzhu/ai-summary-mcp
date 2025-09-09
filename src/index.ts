@@ -1,589 +1,774 @@
 #!/usr/bin/env node
 
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from '@modelcontextprotocol/sdk/types.js';
-import fs from 'fs/promises';
-import path from 'path';
-
-// DeepSeek API配置
-const DEEPSEEK_API_KEY = 'sk-6dea10bd0c894324b9773f7e91a520c1';
-const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
+	CallToolRequestSchema,
+	ListToolsRequestSchema,
+} from "@modelcontextprotocol/sdk/types.js";
+import fs from "fs/promises";
+import path from "path";
 
 // 技术栈枚举
 enum TechStack {
-  FRONTEND = 'frontend',
-  BACKEND = 'backend',
-  MOBILE = 'mobile',
-  DEVOPS = 'devops',
-  DATABASE = 'database',
-  AI_ML = 'ai_ml',
-  BLOCKCHAIN = 'blockchain',
-  GAME_DEV = 'game_dev',
-  EMBEDDED = 'embedded',
-  TESTING = 'testing',
-  DESIGN = 'design',
-  OTHER = 'other'
+	FRONTEND = "frontend",
+	BACKEND = "backend",
+	MOBILE = "mobile",
+	DEVOPS = "devops",
+	DATABASE = "database",
+	AI_ML = "ai_ml",
+	BLOCKCHAIN = "blockchain",
+	GAME_DEV = "game_dev",
+	EMBEDDED = "embedded",
+	TESTING = "testing",
+	DESIGN = "design",
+	OTHER = "other",
 }
 
 // 问题分类枚举
 enum ProblemCategory {
-  BUG_FIX = 'bug_fix',
-  FEATURE_REQUEST = 'feature_request',
-  PERFORMANCE = 'performance',
-  SECURITY = 'security',
-  ARCHITECTURE = 'architecture',
-  CODE_REVIEW = 'code_review',
-  DEPLOYMENT = 'deployment',
-  LEARNING = 'learning',
-  TROUBLESHOOTING = 'troubleshooting',
-  OPTIMIZATION = 'optimization',
-  INTEGRATION = 'integration',
-  OTHER = 'other'
+	BUG_FIX = "bug_fix",
+	FEATURE_REQUEST = "feature_request",
+	PERFORMANCE = "performance",
+	SECURITY = "security",
+	ARCHITECTURE = "architecture",
+	CODE_REVIEW = "code_review",
+	DEPLOYMENT = "deployment",
+	LEARNING = "learning",
+	TROUBLESHOOTING = "troubleshooting",
+	OPTIMIZATION = "optimization",
+	INTEGRATION = "integration",
+	OTHER = "other",
 }
 
 // 类型定义
 interface TechStackAnalysis {
-  primaryStack: TechStack;
-  secondaryStacks: TechStack[];
-  technologies: string[];
-  frameworks: string[];
-  tools: string[];
-  confidence: number;
-  reasoning: string;
+	primaryStack: TechStack;
+	secondaryStacks: TechStack[];
+	technologies: string[];
+	frameworks: string[];
+	tools: string[];
+	confidence: number;
+	reasoning: string;
 }
 
 interface ProblemClassification {
-  category: ProblemCategory;
-  subCategory?: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  complexity: 'simple' | 'moderate' | 'complex' | 'expert';
-  estimatedTime: string;
-  tags: string[];
-  reasoning: string;
+	category: ProblemCategory;
+	subCategory?: string;
+	severity: "low" | "medium" | "high" | "critical";
+	complexity: "simple" | "moderate" | "complex" | "expert";
+	estimatedTime: string;
+	tags: string[];
+	reasoning: string;
 }
 
 interface ChatSummaryResult {
-  focusAreas: string[];
-  thoughts: string[];
-  solvedProblems: string[];
-  techStackAnalysis?: TechStackAnalysis;
-  problemClassifications?: ProblemClassification[];
-  markdown: string;
+	focusAreas: string[];
+	thoughts: string[];
+	solvedProblems: string[];
+	techStackAnalysis?: TechStackAnalysis;
+	problemClassifications?: ProblemClassification[];
+	markdown: string;
 }
 
 interface DeepSeekResponse {
-  choices: {
-    message: {
-      content: string;
-    };
-  }[];
+	choices: {
+		message: {
+			content: string;
+		};
+	}[];
 }
+
+// 导入模块
+import { ComprehensiveAnalysisResult } from "./types.js";
+import {
+	loadConfig,
+	saveConfig,
+	updateAIConfig,
+	resetConfig,
+	validateConfig,
+} from "./config.js";
+import { getAIService } from "./ai-service.js";
+import { ComprehensiveAnalyzer } from "./analyzers.js";
+import { getMarkdownGenerator } from "./markdown-generator.js";
+import { 
+	saveAnalysisResult, 
+	closeDatabaseConnection,
+	getAnalysisResult,
+	getAllAnalysisResults,
+	searchByTechStack,
+	searchByBusinessDomain,
+	deleteAnalysisResult
+} from "./database.js";
 
 // 创建MCP服务器
 const server = new Server(
-  {
-    name: 'ai-collaboration-analyzer',
-    version: '2.0.0',
-  },
-  {
-    capabilities: {
-      tools: {},
-    },
-  }
+	{
+		name: "ai-collaboration-archive-analyzer",
+		version: "3.0.0",
+	},
+	{
+		capabilities: {
+			tools: {},
+		},
+	}
 );
 
-// 调用DeepSeek API的函数
-const callDeepSeekAPI = async (prompt: string): Promise<string> => {
-  try {
-    const response = await fetch(DEEPSEEK_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'deepseek-chat',
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        temperature: 0.7,
-        max_tokens: 2000,
-      }),
-    });
+// 保存Markdown文件的函数
+const saveMarkdownFile = async (
+	content: string,
+	filename?: string
+): Promise<string> => {
+	const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+	const fileName = filename || `analysis-${timestamp}.md`;
+	const documentsDir = path.join(process.cwd(), ".trae", "documents");
 
-    if (!response.ok) {
-      throw new Error(`DeepSeek API请求失败: ${response.status} ${response.statusText}`);
-    }
-
-    const data: DeepSeekResponse = await response.json();
-    return data.choices[0]?.message?.content || '';
-  } catch (error) {
-    console.error('调用DeepSeek API时出错:', error);
-    throw error;
-  }
-};
-
-// 技术栈识别函数
-const analyzeTechStack = async (content: string): Promise<TechStackAnalysis> => {
-  const prompt = `请分析以下内容中涉及的技术栈，并按照以下JSON格式返回：
-
-内容：
-${content}
-
-请返回JSON格式的分析结果：
-{
-  "primaryStack": "主要技术栈类型(frontend/backend/mobile/devops/database/ai_ml/blockchain/game_dev/embedded/testing/design/other)",
-  "secondaryStacks": ["次要技术栈类型数组"],
-  "technologies": ["具体技术列表，如JavaScript, Python等"],
-  "frameworks": ["框架列表，如React, Django等"],
-  "tools": ["工具列表，如Git, Docker等"],
-  "confidence": 0.85,
-  "reasoning": "分析推理过程"
-}`;
-
-  try {
-    const response = await callDeepSeekAPI(prompt);
-    const jsonMatch = response.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]);
-    }
-    throw new Error('无法解析技术栈分析结果');
-  } catch (error) {
-    console.error('技术栈分析失败:', error);
-    return {
-      primaryStack: TechStack.OTHER,
-      secondaryStacks: [],
-      technologies: [],
-      frameworks: [],
-      tools: [],
-      confidence: 0,
-      reasoning: '分析失败'
-    };
-  }
-};
-
-// 问题分类函数
-const classifyProblems = async (content: string): Promise<ProblemClassification[]> => {
-  const prompt = `请分析以下内容中的问题并进行分类，返回JSON数组格式：
-
-内容：
-${content}
-
-请为每个识别到的问题返回以下JSON格式：
-[
-  {
-    "category": "问题类别(bug_fix/feature_request/performance/security/architecture/code_review/deployment/learning/troubleshooting/optimization/integration/other)",
-    "subCategory": "子类别(可选)",
-    "severity": "严重程度(low/medium/high/critical)",
-    "complexity": "复杂度(simple/moderate/complex/expert)",
-    "estimatedTime": "预估时间，如'2小时'、'1天'等",
-    "tags": ["相关标签"],
-    "reasoning": "分类推理"
-  }
-]`;
-
-  try {
-    const response = await callDeepSeekAPI(prompt);
-    const jsonMatch = response.match(/\[[\s\S]*\]/);
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]);
-    }
-    return [];
-  } catch (error) {
-    console.error('问题分类失败:', error);
-    return [];
-  }
-};
-
-// 解析AI返回的结构化内容
-const parseAIResponse = (content: string): ChatSummaryResult => {
-  const lines = content.split('\n');
-  const result: ChatSummaryResult = {
-    focusAreas: [],
-    thoughts: [],
-    solvedProblems: [],
-    markdown: '',
-  };
-
-  let currentSection = '';
-  let markdownContent = '';
-
-  for (const line of lines) {
-    const trimmedLine = line.trim();
-    
-    if (trimmedLine.includes('关注领域') || trimmedLine.includes('Focus Areas')) {
-      currentSection = 'focusAreas';
-      markdownContent += `## 关注的领域\n\n`;
-    } else if (trimmedLine.includes('思考') || trimmedLine.includes('Thoughts')) {
-      currentSection = 'thoughts';
-      markdownContent += `\n## AI对话中的思考\n\n`;
-    } else if (trimmedLine.includes('解决的问题') || trimmedLine.includes('Solved Problems')) {
-      currentSection = 'solvedProblems';
-      markdownContent += `\n## 解决了的问题\n\n`;
-    } else if (trimmedLine.startsWith('-') || trimmedLine.startsWith('•') || /^\d+\./.test(trimmedLine)) {
-      const cleanItem = trimmedLine.replace(/^[-•]\s*/, '').replace(/^\d+\.\s*/, '');
-      if (cleanItem && currentSection) {
-        result[currentSection as keyof Omit<ChatSummaryResult, 'markdown' | 'techStackAnalysis' | 'problemClassifications'>].push(cleanItem);
-        markdownContent += `- ${cleanItem}\n`;
-      }
-    } else if (trimmedLine) {
-      markdownContent += `${trimmedLine}\n`;
-    }
-  }
-
-  result.markdown = markdownContent;
-  return result;
-};
-
-// 保存markdown文件
-const saveMarkdownFile = async (content: string, filename?: string): Promise<string> => {
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const fileName = filename || `analysis-${timestamp}.md`;
-  const documentsDir = path.join(process.cwd(), '.trae', 'documents');
-  
-  try {
-    // 确保目录存在
-    await fs.mkdir(documentsDir, { recursive: true });
-    const filePath = path.join(documentsDir, fileName);
-    await fs.writeFile(filePath, content, 'utf-8');
-    return filePath;
-  } catch (error) {
-    console.error('保存文件时出错:', error);
-    throw error;
-  }
-};
-
-// 生成技术栈分析的Markdown
-const generateTechStackMarkdown = (analysis: TechStackAnalysis): string => {
-  return `## 🔧 技术栈分析
-
-**主要技术栈**: ${analysis.primaryStack}
-**置信度**: ${(analysis.confidence * 100).toFixed(1)}%
-
-### 技术详情
-- **核心技术**: ${analysis.technologies.join(', ') || '未识别'}
-- **框架**: ${analysis.frameworks.join(', ') || '未识别'}
-- **工具**: ${analysis.tools.join(', ') || '未识别'}
-- **次要技术栈**: ${analysis.secondaryStacks.join(', ') || '无'}
-
-**分析推理**: ${analysis.reasoning}
-
-`;
-};
-
-// 生成问题分类的Markdown
-const generateProblemClassificationMarkdown = (classifications: ProblemClassification[]): string => {
-  if (classifications.length === 0) {
-    return `## 🔍 问题分类
-
-暂无识别到的问题。
-
-`;
-  }
-
-  let markdown = `## 🔍 问题分类
-
-`;
-  
-  classifications.forEach((problem, index) => {
-    const severityEmoji = {
-      low: '🟢',
-      medium: '🟡', 
-      high: '🟠',
-      critical: '🔴'
-    }[problem.severity];
-    
-    const complexityEmoji = {
-      simple: '⭐',
-      moderate: '⭐⭐',
-      complex: '⭐⭐⭐',
-      expert: '⭐⭐⭐⭐'
-    }[problem.complexity];
-
-    markdown += `### 问题 ${index + 1}
-`;
-    markdown += `- **类别**: ${problem.category}${problem.subCategory ? ` (${problem.subCategory})` : ''}
-`;
-    markdown += `- **严重程度**: ${severityEmoji} ${problem.severity}
-`;
-    markdown += `- **复杂度**: ${complexityEmoji} ${problem.complexity}
-`;
-    markdown += `- **预估时间**: ${problem.estimatedTime}
-`;
-    markdown += `- **标签**: ${problem.tags.join(', ')}
-`;
-    markdown += `- **分析**: ${problem.reasoning}
-
-`;
-  });
-
-  return markdown;
-};
-
-// 生成提炼聊天内容的提示词
-const generatePrompt = (chatContent: string): string => {
-  return `请分析以下聊天内容，并按照以下格式提炼信息：
-
-聊天内容：
-${chatContent}
-
-请按以下结构分析并输出：
-
-关注领域：
-- [提炼出的关注领域1]
-- [提炼出的关注领域2]
-- [更多领域...]
-
-AI对话中的思考：
-- [重要的思考点1]
-- [重要的思考点2]
-- [更多思考...]
-
-解决了的问题：
-- [解决的问题1]
-- [解决的问题2]
-- [更多问题...]
-
-请确保每个部分都有具体的内容，如果某个部分没有相关信息，请标注"暂无"。`;
+	try {
+		await fs.mkdir(documentsDir, { recursive: true });
+		const filePath = path.join(documentsDir, fileName);
+		await fs.writeFile(filePath, content, "utf-8");
+		return filePath;
+	} catch (error) {
+		console.error("保存文件时出错:", error);
+		throw error;
+	}
 };
 
 // 注册工具
 server.setRequestHandler(ListToolsRequestSchema, async () => {
-  return {
-    tools: [
-      {
-        name: 'chat_summary',
-        description: '分析聊天内容并生成包含关注领域、思考和解决问题的markdown总结',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            chatContent: {
-              type: 'string',
-              description: '需要分析的聊天内容',
-            },
-            filename: {
-              type: 'string',
-              description: '可选的输出文件名（不包含扩展名）',
-            },
-          },
-          required: ['chatContent'],
-        },
-      },
-      {
-        name: 'analyze_tech_stack',
-        description: '分析内容中的技术栈，识别主要和次要技术栈、具体技术、框架和工具',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            content: {
-              type: 'string',
-              description: '需要分析技术栈的内容',
-            },
-            filename: {
-              type: 'string',
-              description: '可选的输出文件名（不包含扩展名）',
-            },
-          },
-          required: ['content'],
-        },
-      },
-      {
-        name: 'classify_problems',
-        description: '对内容中的问题进行分类，包括问题类型、严重程度、复杂度和预估时间',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            content: {
-              type: 'string',
-              description: '需要分析问题的内容',
-            },
-            filename: {
-              type: 'string',
-              description: '可选的输出文件名（不包含扩展名）',
-            },
-          },
-          required: ['content'],
-        },
-      },
-      {
-        name: 'comprehensive_analysis',
-        description: '综合分析：同时进行聊天总结、技术栈识别和问题分类的完整分析',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            content: {
-              type: 'string',
-              description: '需要进行综合分析的内容',
-            },
-            filename: {
-              type: 'string',
-              description: '可选的输出文件名（不包含扩展名）',
-            },
-          },
-          required: ['content'],
-        },
-      },
-    ],
-  };
+	return {
+		tools: [
+			{
+				name: "chat_summary",
+				description:
+					"分析聊天内容并生成包含技术栈、业务、标签、AI思考、问题分类、解决方案和总结的综合分析报告",
+				inputSchema: {
+					type: "object",
+					properties: {
+						chatContent: {
+							type: "string",
+							description: "需要分析的聊天内容",
+						},
+						filename: {
+							type: "string",
+							description: "可选的输出文件名（不包含扩展名）",
+						},
+						analysisConfig: {
+							type: "object",
+							description: "分析配置选项",
+							properties: {
+								enableTechStack: { type: "boolean", default: true },
+								enableBusiness: { type: "boolean", default: true },
+								enableTags: { type: "boolean", default: true },
+								enableAIThoughts: { type: "boolean", default: true },
+								enableProblems: { type: "boolean", default: true },
+								enableSolutions: { type: "boolean", default: true },
+								enableSummary: { type: "boolean", default: true },
+							},
+						},
+					},
+					required: ["chatContent"],
+				},
+			},
+			{
+				name: "update_ai_config",
+				description:
+					"更新AI提供商配置，支持配置不同的大模型提供商、API密钥和基础URL",
+				inputSchema: {
+					type: "object",
+					properties: {
+						provider: {
+							type: "string",
+							enum: ["deepseek", "openai", "anthropic", "azure", "custom"],
+							description: "AI提供商",
+						},
+						apiKey: {
+							type: "string",
+							description: "API密钥",
+						},
+						baseUrl: {
+							type: "string",
+							description: "自定义API基础URL",
+						},
+						model: {
+							type: "string",
+							description: "模型名称",
+						},
+					},
+					required: ["provider"],
+				},
+			},
+			{
+				name: "get_ai_config",
+				description: "获取当前AI提供商配置",
+				inputSchema: {
+					type: "object",
+					properties: {},
+					required: [],
+				},
+			},
+			{
+				name: "reset_config",
+				description: "重置所有配置为默认值",
+				inputSchema: {
+					type: "object",
+					properties: {},
+					required: [],
+				},
+			},
+			{
+				name: "quick_analysis",
+				description: "快速分析聊天内容，生成简化报告",
+				inputSchema: {
+					type: "object",
+					properties: {
+						chatContent: {
+							type: "string",
+							description: "要分析的聊天内容",
+						},
+					},
+					required: ["chatContent"],
+				},
+			},
+			{
+				name: "get_analysis_result",
+				description: "根据ID获取分析结果",
+				inputSchema: {
+					type: "object",
+					properties: {
+						id: {
+							type: "string",
+							description: "分析结果的ID",
+						},
+					},
+					required: ["id"],
+				},
+			},
+			{
+				name: "list_analysis_results",
+				description: "获取所有分析结果列表（分页）",
+				inputSchema: {
+					type: "object",
+					properties: {
+						page: {
+							type: "number",
+							description: "页码，默认为1",
+							default: 1,
+						},
+						limit: {
+							type: "number",
+							description: "每页数量，默认为10",
+							default: 10,
+						},
+					},
+				},
+			},
+			{
+				name: "search_by_tech_stack",
+				description: "根据技术栈搜索分析结果",
+				inputSchema: {
+					type: "object",
+					properties: {
+						techStack: {
+							type: "string",
+							description: "技术栈关键词",
+						},
+					},
+					required: ["techStack"],
+				},
+			},
+			{
+				name: "search_by_business_domain",
+				description: "根据业务领域搜索分析结果",
+				inputSchema: {
+					type: "object",
+					properties: {
+						domain: {
+							type: "string",
+							description: "业务领域关键词",
+						},
+					},
+					required: ["domain"],
+				},
+			},
+			{
+				name: "delete_analysis_result",
+				description: "删除分析结果",
+				inputSchema: {
+					type: "object",
+					properties: {
+						id: {
+							type: "string",
+							description: "要删除的分析结果ID",
+						},
+					},
+					required: ["id"],
+				},
+			},
+		],
+	};
 });
 
 // 处理工具调用
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  const { name, arguments: args } = request.params;
+	const { name, arguments: args } = request.params;
 
-  try {
-    const content = (args?.chatContent || args?.content) as string | undefined;
-    const filename = args?.filename as string | undefined;
+	try {
+		switch (name) {
+			case "chat_summary": {
+				console.log('🔍 开始执行聊天内容分析...');
+				const {
+					chatContent,
+					filename,
+					analysisConfig = {},
+				} = args as {
+					chatContent: string;
+					filename?: string;
+					analysisConfig?: {
+						enableTechStack?: boolean;
+						enableBusiness?: boolean;
+						enableTags?: boolean;
+						enableAIThoughts?: boolean;
+						enableProblems?: boolean;
+						enableSolutions?: boolean;
+						enableSummary?: boolean;
+					};
+				};
 
-    if (!content || content.trim().length === 0) {
-      throw new Error('内容不能为空');
-    }
+				console.log(`📝 聊天内容长度: ${chatContent?.length || 0} 字符`);
+				console.log(`📁 指定文件名: ${filename || '未指定'}`);
+				console.log(`⚙️  分析配置:`, analysisConfig);
 
-    if (name === 'chat_summary') {
-      // 生成提示词并调用DeepSeek API
-      const prompt = generatePrompt(content);
-      const aiResponse = await callDeepSeekAPI(prompt);
-      
-      // 解析AI响应
-      const summaryResult = parseAIResponse(aiResponse);
-      
-      // 生成完整的markdown内容
-      const timestamp = new Date().toLocaleString('zh-CN');
-      const fullMarkdown = `# 聊天内容总结\n\n**生成时间**: ${timestamp}\n\n${summaryResult.markdown}\n\n---\n\n## 原始聊天内容\n\n\`\`\`\n${content}\n\`\`\``;
-      
-      // 保存文件
-      const savedPath = await saveMarkdownFile(fullMarkdown, filename);
-      
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `聊天内容分析完成！\n\n**关注的领域** (${summaryResult.focusAreas.length}个):\n${summaryResult.focusAreas.map(area => `• ${area}`).join('\n')}\n\n**AI对话中的思考** (${summaryResult.thoughts.length}个):\n${summaryResult.thoughts.map(thought => `• ${thought}`).join('\n')}\n\n**解决了的问题** (${summaryResult.solvedProblems.length}个):\n${summaryResult.solvedProblems.map(problem => `• ${problem}`).join('\n')}\n\n**文件已保存至**: ${savedPath}`,
-          },
-        ],
-      };
-    }
+				if (!chatContent) {
+					console.error('❌ 聊天内容为空');
+					throw new Error("聊天内容不能为空");
+				}
 
-    if (name === 'analyze_tech_stack') {
-      const techStackAnalysis = await analyzeTechStack(content);
-      const markdown = generateTechStackMarkdown(techStackAnalysis);
-      
-      const timestamp = new Date().toLocaleString('zh-CN');
-      const fullMarkdown = `# 技术栈分析报告\n\n**生成时间**: ${timestamp}\n\n${markdown}\n---\n\n## 原始内容\n\n\`\`\`\n${content}\n\`\`\``;
-      
-      const savedPath = await saveMarkdownFile(fullMarkdown, filename || 'tech-stack-analysis');
-      
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `技术栈分析完成！\n\n**主要技术栈**: ${techStackAnalysis.primaryStack}\n**置信度**: ${(techStackAnalysis.confidence * 100).toFixed(1)}%\n**核心技术**: ${techStackAnalysis.technologies.join(', ') || '未识别'}\n**框架**: ${techStackAnalysis.frameworks.join(', ') || '未识别'}\n**工具**: ${techStackAnalysis.tools.join(', ') || '未识别'}\n\n**文件已保存至**: ${savedPath}`,
-          },
-        ],
-      };
-    }
+				// 加载配置
+				console.log('📋 加载配置文件...');
+				const config = await loadConfig();
+				console.log('✅ 配置加载完成');
 
-    if (name === 'classify_problems') {
-      const problemClassifications = await classifyProblems(content);
-      const markdown = generateProblemClassificationMarkdown(problemClassifications);
-      
-      const timestamp = new Date().toLocaleString('zh-CN');
-      const fullMarkdown = `# 问题分类报告\n\n**生成时间**: ${timestamp}\n\n${markdown}\n---\n\n## 原始内容\n\n\`\`\`\n${content}\n\`\`\``;
-      
-      const savedPath = await saveMarkdownFile(fullMarkdown, filename || 'problem-classification');
-      
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `问题分类完成！\n\n**识别到的问题数量**: ${problemClassifications.length}\n\n${problemClassifications.map((p, i) => `**问题 ${i + 1}**: ${p.category} (${p.severity}严重程度, ${p.complexity}复杂度, 预估${p.estimatedTime})`).join('\n')}\n\n**文件已保存至**: ${savedPath}`,
-          },
-        ],
-      };
-    }
+				// 初始化AI服务
+				console.log('🤖 初始化AI服务...');
+				const aiService = await getAIService();
+				await aiService.initialize();
+				console.log('✅ AI服务初始化完成');
 
-    if (name === 'comprehensive_analysis') {
-      // 并行执行所有分析
-      const [summaryPromise, techStackPromise, problemsPromise] = await Promise.allSettled([
-        (async () => {
-          const prompt = generatePrompt(content);
-          const aiResponse = await callDeepSeekAPI(prompt);
-          return parseAIResponse(aiResponse);
-        })(),
-        analyzeTechStack(content),
-        classifyProblems(content)
-      ]);
+				// 创建综合分析器（使用合并后的配置）
+				console.log('⚙️  合并分析配置...');
+				const mergedConfig = {
+					...config.analysis,
+					enableTechStack:
+						analysisConfig.enableTechStack ?? config.analysis.enableTechStack,
+					enableBusiness:
+						analysisConfig.enableBusiness ?? config.analysis.enableBusiness,
+					enableTags: analysisConfig.enableTags ?? config.analysis.enableTags,
+					enableAIThoughts:
+						analysisConfig.enableAIThoughts ?? config.analysis.enableAIThoughts,
+					enableProblems:
+						analysisConfig.enableProblems ?? config.analysis.enableProblems,
+					enableSolutions:
+						analysisConfig.enableSolutions ?? config.analysis.enableSolutions,
+					enableSummary:
+						analysisConfig.enableSummary ?? config.analysis.enableSummary,
+				};
+				console.log('📊 最终分析配置:', mergedConfig);
 
-      const summaryResult = summaryPromise.status === 'fulfilled' ? summaryPromise.value : {
-        focusAreas: [],
-        thoughts: [],
-        solvedProblems: [],
-        markdown: '分析失败'
-      };
-      
-      const techStackAnalysis = techStackPromise.status === 'fulfilled' ? techStackPromise.value : {
-        primaryStack: TechStack.OTHER,
-        secondaryStacks: [],
-        technologies: [],
-        frameworks: [],
-        tools: [],
-        confidence: 0,
-        reasoning: '分析失败'
-      };
-      
-      const problemClassifications = problemsPromise.status === 'fulfilled' ? problemsPromise.value : [];
+				// 创建综合分析器
+				console.log('🔬 创建综合分析器实例...');
+				const analyzer = new ComprehensiveAnalyzer(aiService, mergedConfig);
 
-      // 生成综合报告
-      const timestamp = new Date().toLocaleString('zh-CN');
-      const fullMarkdown = `# AI协作档案综合分析报告\n\n**生成时间**: ${timestamp}\n\n${summaryResult.markdown}\n${generateTechStackMarkdown(techStackAnalysis)}\n${generateProblemClassificationMarkdown(problemClassifications)}\n---\n\n## 原始内容\n\n\`\`\`\n${content}\n\`\`\``;
-      
-      const savedPath = await saveMarkdownFile(fullMarkdown, filename || 'comprehensive-analysis');
-      
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `综合分析完成！\n\n## 📊 分析概览\n\n**关注领域**: ${summaryResult.focusAreas.length}个\n**思考要点**: ${summaryResult.thoughts.length}个\n**解决问题**: ${summaryResult.solvedProblems.length}个\n**主要技术栈**: ${techStackAnalysis.primaryStack} (${(techStackAnalysis.confidence * 100).toFixed(1)}%置信度)\n**识别问题**: ${problemClassifications.length}个\n\n**文件已保存至**: ${savedPath}`,
-          },
-        ],
-      };
-    }
+				// 执行综合分析
+				console.log('🔍 开始执行综合分析...');
+				const result = await analyzer.analyze(chatContent);
+				console.log('✅ 综合分析完成');
+				console.log('📊 分析结果概览:', {
+					techStack: result.techStack?.primaryStack,
+					business: result.business?.domain,
+					problemsCount: result.problems?.length || 0,
+					solutionsCount: result.solutions?.solutionApproaches?.length || 0
+				});
 
-    throw new Error(`未知的工具: ${name}`);
-  } catch (error) {
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `处理请求时出错: ${error instanceof Error ? error.message : String(error)}`,
-        },
-      ],
-      isError: true,
-    };
-  }
+				// 生成Markdown报告
+				console.log('📄 生成Markdown报告...');
+				const markdownGenerator = getMarkdownGenerator();
+				const markdown = markdownGenerator.generateComprehensiveMarkdown(
+					result,
+					chatContent
+				);
+				console.log(`📄 Markdown报告生成完成，长度: ${markdown.length} 字符`);
+
+				// 保存文件
+				console.log('💾 保存Markdown文件...');
+				const filePath = await saveMarkdownFile(markdown, filename);
+				console.log(`✅ 文件保存成功: ${filePath}`);
+
+				// 保存到数据库
+				console.log('🗄️  开始保存到数据库...');
+				try {
+					const dbId = await saveAnalysisResult(result, chatContent, filename);
+					console.log(`✅ 数据库保存成功，ID: ${dbId}`);
+				} catch (dbError) {
+					console.error('❌ 数据库保存失败，但文件保存成功:', dbError);
+					console.error('🔍 数据库错误详情:', {
+						name: dbError instanceof Error ? dbError.name : 'Unknown',
+						message: dbError instanceof Error ? dbError.message : String(dbError),
+						stack: dbError instanceof Error ? dbError.stack : undefined
+					});
+				}
+
+				return {
+					content: [
+						{
+							type: "text",
+							text: `✅ 综合分析完成！\n\n📊 **分析结果概览**:\n${markdownGenerator.generateStatistics(
+								result
+							)}\n📁 **文件已保存**: ${filePath}\n\n🔍 **快速预览**:\n${markdownGenerator.generateSimpleReport(
+								result
+							)}`,
+						},
+					],
+				};
+			}
+
+			case "update_ai_config": {
+				const { provider, apiKey, baseUrl, model } = args as {
+					provider: string;
+					apiKey?: string;
+					baseUrl?: string;
+					model?: string;
+				};
+
+				// 更新AI提供商配置
+				await updateAIConfig({
+					provider: provider as "deepseek" | "openai" | "custom" | "claude",
+					apiKey: apiKey || undefined,
+					baseUrl: baseUrl || undefined,
+					model: model || undefined,
+				});
+
+				// 重新初始化AI服务
+				const config = await loadConfig();
+				const aiService = await getAIService();
+				await aiService.initialize();
+
+				return {
+					content: [
+						{
+							type: "text",
+							text: `✅ AI配置已更新！\n\n**提供商**: ${provider}\n**模型**: ${
+								model || "默认"
+							}\n**基础URL**: ${baseUrl || "默认"}\n**API密钥**: ${
+								apiKey ? "已设置" : "未设置"
+							}`,
+						},
+					],
+				};
+			}
+
+			case "get_ai_config": {
+				const config = await loadConfig();
+				const aiConfig = config.ai;
+
+				return {
+					content: [
+						{
+							type: "text",
+							text: `📋 **当前AI配置**:\n\n**提供商**: ${
+								aiConfig.provider
+							}\n**模型**: ${aiConfig.model || "默认"}\n**基础URL**: ${
+								aiConfig.baseUrl || "默认"
+							}\n**API密钥**: ${
+								aiConfig.apiKey ? "已设置" : "未设置"
+							}\n\n**分析配置**:\n- 技术栈分析: ${
+								config.analysis.enableTechStack ? "✅" : "❌"
+							}\n- 业务分析: ${
+								config.analysis.enableBusiness ? "✅" : "❌"
+							}\n- 标签分析: ${
+								config.analysis.enableTags ? "✅" : "❌"
+							}\n- AI思考分析: ${
+								config.analysis.enableAIThoughts ? "✅" : "❌"
+							}\n- 问题分类: ${
+								config.analysis.enableProblems ? "✅" : "❌"
+							}\n- 解决方案分析: ${
+								config.analysis.enableSolutions ? "✅" : "❌"
+							}\n- 总结分析: ${config.analysis.enableSummary ? "✅" : "❌"}`,
+						},
+					],
+				};
+			}
+
+			case "reset_config": {
+				await resetConfig();
+
+				return {
+					content: [
+						{
+							type: "text",
+							text: "✅ 配置已重置为默认值！",
+						},
+					],
+				};
+			}
+
+			case "quick_analysis": {
+				const { chatContent } = args as { chatContent: string };
+
+				if (!chatContent) {
+					throw new Error("聊天内容不能为空");
+				}
+
+				// 加载配置
+				const config = await loadConfig();
+
+				// 初始化AI服务
+				const aiService = await getAIService();
+				await aiService.initialize();
+
+				// 创建快速分析配置
+				const quickConfig = {
+					...config.analysis,
+					enableTechStack: true,
+					enableBusiness: true,
+					enableTags: true,
+					enableAIThoughts: false,
+					enableProblems: true,
+					enableSolutions: false,
+					enableSummary: true,
+				};
+
+				// 创建综合分析器
+				const analyzer = new ComprehensiveAnalyzer(aiService, quickConfig);
+
+				// 执行快速分析
+				const result = await analyzer.analyze(chatContent);
+
+				// 生成简化报告
+				const markdownGenerator = getMarkdownGenerator();
+				const quickReport = markdownGenerator.generateSimpleReport(result);
+
+				return {
+					content: [
+						{
+							type: "text",
+							text: `⚡ **快速分析结果**:\n\n${quickReport}`,
+						},
+					],
+				};
+			}
+
+			case "get_analysis_result": {
+				const { id } = args as { id: string };
+
+				if (!id) {
+					throw new Error("分析结果ID不能为空");
+				}
+
+				const result = await getAnalysisResult(id);
+				if (!result) {
+					throw new Error(`未找到ID为 ${id} 的分析结果`);
+				}
+
+				return {
+					content: [
+						{
+							type: "text",
+							text: `📊 **分析结果详情**:\n\n**ID**: ${result.id}\n**创建时间**: ${result.createdAt.toLocaleString()}\n**文件名**: ${result.filename || '未指定'}\n**技术栈**: ${result.primaryStack || '未识别'}\n**业务领域**: ${result.businessDomain || '未识别'}\n**优先级**: ${result.priority || '未设置'}\n\n**Markdown报告**:\n\n${result.markdownReport}`,
+						},
+					],
+				};
+			}
+
+			case "list_analysis_results": {
+				const { page = 1, limit = 10 } = args as { page?: number; limit?: number };
+
+				const results = await getAllAnalysisResults(page, limit);
+
+				const resultsList = results.results.map((result: any) => 
+					`- **${result.id}** | ${result.createdAt.toLocaleDateString()} | ${result.filename || '未命名'} | ${result.primaryStack || '未知技术栈'} | ${result.businessDomain || '未知领域'}`
+				).join('\n');
+
+				return {
+					content: [
+						{
+							type: "text",
+							text: `📋 **分析结果列表** (第${page}页，共${results.totalPages}页):\n\n${resultsList}\n\n**统计信息**:\n- 总数: ${results.total}\n- 当前页: ${page}/${results.totalPages}\n- 每页显示: ${limit}`,
+						},
+					],
+				};
+			}
+
+			case "search_by_tech_stack": {
+				const { techStack } = args as { techStack: string };
+
+				if (!techStack) {
+					throw new Error("技术栈关键词不能为空");
+				}
+
+				const results = await searchByTechStack(techStack);
+
+				if (results.length === 0) {
+					return {
+						content: [
+							{
+								type: "text",
+								text: `🔍 未找到包含技术栈 "${techStack}" 的分析结果`,
+							},
+						],
+					};
+				}
+
+				const resultsList = results.map((result: any) => 
+					`- **${result.id}** | ${result.createdAt.toLocaleDateString()} | ${result.filename || '未命名'} | ${result.primaryStack} | ${result.technologies.join(', ')}`
+				).join('\n');
+
+				return {
+					content: [
+						{
+							type: "text",
+							text: `🔍 **技术栈搜索结果** (关键词: "${techStack}"):\n\n${resultsList}\n\n找到 ${results.length} 个相关结果`,
+						},
+					],
+				};
+			}
+
+			case "search_by_business_domain": {
+				const { domain } = args as { domain: string };
+
+				if (!domain) {
+					throw new Error("业务领域关键词不能为空");
+				}
+
+				const results = await searchByBusinessDomain(domain);
+
+				if (results.length === 0) {
+					return {
+						content: [
+							{
+								type: "text",
+								text: `🔍 未找到包含业务领域 "${domain}" 的分析结果`,
+							},
+						],
+					};
+				}
+
+				const resultsList = results.map((result: any) => 
+					`- **${result.id}** | ${result.createdAt.toLocaleDateString()} | ${result.filename || '未命名'} | ${result.businessDomain} | ${result.subDomains.join(', ')}`
+				).join('\n');
+
+				return {
+					content: [
+						{
+							type: "text",
+							text: `🔍 **业务领域搜索结果** (关键词: "${domain}"):\n\n${resultsList}\n\n找到 ${results.length} 个相关结果`,
+						},
+					],
+				};
+			}
+
+			case "delete_analysis_result": {
+				const { id } = args as { id: string };
+
+				if (!id) {
+					throw new Error("分析结果ID不能为空");
+				}
+
+				// 先检查记录是否存在
+				const existingResult = await getAnalysisResult(id);
+				if (!existingResult) {
+					throw new Error(`未找到ID为 ${id} 的分析结果`);
+				}
+
+				await deleteAnalysisResult(id);
+
+				return {
+					content: [
+						{
+							type: "text",
+							text: `✅ 分析结果已删除\n\n**删除的记录**:\n- ID: ${id}\n- 文件名: ${existingResult.filename || '未命名'}\n- 创建时间: ${existingResult.createdAt.toLocaleString()}`,
+						},
+					],
+				};
+			}
+
+			default:
+				throw new Error(`未知的工具: ${name}`);
+		}
+	} catch (error) {
+		console.error(`工具 ${name} 执行失败:`, error);
+		return {
+			content: [
+				{
+					type: "text",
+					text: `❌ 执行失败: ${
+						error instanceof Error ? error.message : "未知错误"
+					}`,
+				},
+			],
+			isError: true,
+		};
+	}
 });
 
-// 启动服务器
+// 启动服务器的主函数
 const main = async (): Promise<void> => {
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-  console.error('AI协作档案分析器MCP服务器已启动');
+	console.error("🔄 正在启动 AI协作档案分析器 v3.0...");
+	
+	// 检查数据库连接
+	try {
+		console.error("🗄️  检查数据库连接...");
+		const { prisma } = await import('./database.js');
+		await prisma.$connect();
+		await prisma.$queryRaw`SELECT 1`;
+		console.error("✅ 数据库连接正常");
+	} catch (dbError) {
+		console.error("⚠️  数据库连接失败，但服务器将继续启动:", dbError);
+		console.error("🔍 数据库错误详情:", {
+			name: dbError instanceof Error ? dbError.name : 'Unknown',
+			message: dbError instanceof Error ? dbError.message : String(dbError)
+		});
+	}
+	
+	// 检查配置文件
+	try {
+		console.error("⚙️  检查配置文件...");
+		const config = await loadConfig();
+		console.error("✅ 配置文件加载成功");
+		console.error("📋 当前配置:", {
+			aiProvider: config.ai.provider,
+			hasApiKey: !!config.ai.apiKey,
+			analysisModules: Object.entries(config.analysis).filter(([_, enabled]) => enabled).map(([key]) => key)
+		});
+	} catch (configError) {
+		console.error("⚠️  配置文件加载失败:", configError);
+	}
+	
+	console.error("🌐 启动 MCP 服务器...");
+	const transport = new StdioServerTransport();
+	await server.connect(transport);
+	
+	console.error("🚀 AI协作档案分析器 v3.0 MCP服务器已启动");
+	console.error(
+		"📋 支持功能: 技术栈分析、业务分析、标签分析、AI思考分析、问题分类、解决方案分析、总结分析"
+	);
+	console.error("⚙️  支持配置: 多AI提供商、自定义API、模块化分析");
+	console.error("📊 数据库功能: 分析结果持久化、历史记录查询、搜索过滤");
 };
 
-// 错误处理
-process.on('SIGINT', async () => {
-  await server.close();
-  process.exit(0);
+// 优雅关闭
+process.on("SIGINT", async () => {
+	console.error("\n🛑 正在关闭服务器...");
+	try {
+		await closeDatabaseConnection();
+		console.error("📊 数据库连接已关闭");
+	} catch (error) {
+		console.error("❌ 关闭数据库连接时出错:", error);
+	}
+	process.exit(0);
 });
 
 main().catch((error) => {
-  console.error('服务器启动失败:', error);
-  process.exit(1);
+	console.error("❌ 服务器启动失败:", error);
+	process.exit(1);
 });
