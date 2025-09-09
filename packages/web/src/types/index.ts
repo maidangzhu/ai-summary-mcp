@@ -18,12 +18,6 @@ export interface ProblemClassification {
   createdAt: Date
   analysisResultId: string
   category: string
-  subCategory?: string
-  severity: string
-  complexity: string
-  estimatedTime: string
-  tags: string[]
-  reasoning: string
 }
 
 // UI组件相关类型

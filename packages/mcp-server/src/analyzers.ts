@@ -160,13 +160,7 @@ ${content}
 请为每个识别到的问题返回以下JSON格式：
 [
   {
-    "category": "问题类别(bug_fix/feature_request/performance/security/architecture/code_review/deployment/learning/troubleshooting/optimization/integration/other)",
-    "subCategory": "子类别(可选)",
-    "severity": "严重程度(low/medium/high/critical)",
-    "complexity": "复杂度(simple/moderate/complex/expert)",
-    "estimatedTime": "预估时间，如'2小时'、'1天'等",
-    "tags": ["相关标签"],
-    "reasoning": "分类推理"
+    "category": "问题类别(bug_fix/feature_request/performance/security/architecture/code_review/deployment/learning/troubleshooting/optimization/integration/other)"
   }
 ]`;
 

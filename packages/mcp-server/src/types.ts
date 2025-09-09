@@ -101,12 +101,6 @@ export interface AIThoughtAnalysis {
 // 问题分类结果
 export interface ProblemClassification {
   category: ProblemCategory;
-  subCategory?: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  complexity: 'simple' | 'moderate' | 'complex' | 'expert';
-  estimatedTime: string;
-  tags: string[];
-  reasoning: string;
 }
 
 // 总结分析

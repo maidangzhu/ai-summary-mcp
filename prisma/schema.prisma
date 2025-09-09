@@ -42,13 +42,7 @@ model ProblemClassification {
   id               String   @id @default(cuid())
   createdAt        DateTime @default(now())
   analysisResultId String
-  category      String
-  subCategory   String?
-  severity      String
-  complexity    String
-  estimatedTime String
-  tags          String[] @default([])
-  reasoning     String   @db.Text
+  category         String
 
   analysisResult AnalysisResult @relation(fields: [analysisResultId], references: [id], onDelete: Cascade)
 

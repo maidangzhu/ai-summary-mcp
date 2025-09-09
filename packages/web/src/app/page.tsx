@@ -130,7 +130,7 @@ const HomePage = () => {
         
         {/* 搜索和筛选 */}
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-0 border-none">
             <div className="space-y-4">
               {/* 搜索框 */}
               <div className="relative">
@@ -143,42 +143,6 @@ const HomePage = () => {
                   className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-md focus:outline-hidden focus:ring-2 focus:ring-primary/50 text-foreground"
                 />
               </div>
-              
-              {/* 筛选标签 */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Filter className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium text-foreground">技术栈筛选:</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {['前端', '后端', 'AI/ML', 'DevOps', '数据库'].map((stack) => (
-                    <Badge
-                      key={stack}
-                      variant={selectedTechStack === stack ? 'default' : 'outline-solid'}
-                      className="cursor-pointer hover:bg-primary/20 transition-colors"
-                      onClick={() => handleTechStackFilter(stack)}
-                    >
-                      {stack}
-                    </Badge>
-                  ))}
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-foreground">业务领域筛选:</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {['电商', '金融科技', '教育', '生产力工具', '开源'].map((business) => (
-                    <Badge
-                      key={business}
-                      variant={selectedBusiness === business ? 'default' : 'outline-solid'}
-                      className="cursor-pointer hover:bg-primary/20 transition-colors"
-                      onClick={() => handleBusinessFilter(business)}
-                    >
-                      {business}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
             </div>
           </CardContent>
         </Card>
@@ -186,9 +150,6 @@ const HomePage = () => {
         {/* 分析结果列表 */}
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-foreground">
-              AI协作分析记录
-            </h2>
             <span className="text-sm text-muted-foreground">
               共 {analysisResults.length} 条记录
             </span>

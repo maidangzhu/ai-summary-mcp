@@ -53,13 +53,7 @@ export const saveAnalysisResult = async (
         // 创建关联的问题分类
         problems: {
           create: (result.problems || []).map(problem => ({
-            category: problem.category,
-            subCategory: problem.subCategory,
-            severity: problem.severity,
-            complexity: problem.complexity,
-            estimatedTime: problem.estimatedTime,
-            tags: problem.tags,
-            reasoning: problem.reasoning
+            category: problem.category
           }))
         }
       },
