@@ -7,21 +7,16 @@ import {
 	ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 
-import {
-	loadConfig,
-} from "./config.js";
+import { loadConfig } from "./config.js";
 import { getAIService } from "./ai-service.js";
 import { ComprehensiveAnalyzer } from "./analyzers.js";
 
-import { 
-	saveAnalysisResult, 
-	closeDatabaseConnection,
-} from "./database.js";
+import { saveAnalysisResult, closeDatabaseConnection } from "./database.js";
 
 // 创建MCP服务器
 const server = new Server(
 	{
-		name: "ai-collaboration-archive-analyzer",
+		name: "daily-thoughts-analyzer",
 		version: "3.0.0",
 	},
 	{
@@ -31,8 +26,6 @@ const server = new Server(
 	}
 );
 
-
-
 // 注册工具
 server.setRequestHandler(ListToolsRequestSchema, async () => {
 	return {
@@ -40,7 +33,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 			{
 				name: "chat_summary",
 				description:
-					"分析聊天内容并生成包含技术栈、业务、标签、AI思考、问题分类、解决方案和总结的综合分析报告",
+					"分析聊天内容并生成包含用户的问题、技术栈、业务、标签、AI思考、问题分类、解决方案和总结的综合分析报告",
 				inputSchema: {
 					type: "object",
 					properties: {
@@ -48,22 +41,22 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 							type: "string",
 							description: "需要分析的聊天内容",
 						},
-						filename: {
+						title: {
 							type: "string",
-							description: "可选的输出文件名（不包含扩展名）",
+							description: "分析报告的标题",
 						},
 						analysisConfig: {
-					type: "object",
-					description: "分析配置选项",
-					properties: {
-						enableTechStack: { type: "boolean", default: true },
-						enableBusiness: { type: "boolean", default: true },
-						enableTags: { type: "boolean", default: true },
-						enableAIThoughts: { type: "boolean", default: true },
-						enableProblems: { type: "boolean", default: true },
-						enableSummary: { type: "boolean", default: true },
-					},
-				},
+							type: "object",
+							description: "分析配置选项",
+							properties: {
+								enableTechStack: { type: "boolean", default: true },
+								enableBusiness: { type: "boolean", default: true },
+								enableTags: { type: "boolean", default: true },
+								enableAIThoughts: { type: "boolean", default: true },
+								enableProblems: { type: "boolean", default: true },
+								enableSummary: { type: "boolean", default: true },
+							},
+						},
 					},
 					required: ["chatContent"],
 				},
@@ -79,14 +72,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 	try {
 		switch (name) {
 			case "chat_summary": {
-				console.log('🔍 开始执行聊天内容分析...');
+				console.log("🔍 开始执行聊天内容分析...");
 				const {
 					chatContent,
-					filename,
+					title,
 					analysisConfig = {},
 				} = args as {
 					chatContent: string;
-					filename?: string;
+					title?: string;
 					analysisConfig?: {
 						enableTechStack?: boolean;
 						enableBusiness?: boolean;
@@ -98,27 +91,27 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 				};
 
 				console.log(`📝 聊天内容长度: ${chatContent?.length || 0} 字符`);
-				console.log(`📁 指定文件名: ${filename || '未指定'}`);
+				console.log(`📁 指定标题: ${title || "未指定"}`);
 				console.log(`⚙️  分析配置:`, analysisConfig);
 
 				if (!chatContent) {
-					console.error('❌ 聊天内容为空');
+					console.error("❌ 聊天内容为空");
 					throw new Error("聊天内容不能为空");
 				}
 
 				// 加载配置
-				console.log('📋 加载配置文件...');
+				console.log("📋 加载配置文件...");
 				const config = await loadConfig();
-				console.log('✅ 配置加载完成');
+				console.log("✅ 配置加载完成");
 
 				// 初始化AI服务
-				console.log('🤖 初始化AI服务...');
+				console.log("🤖 初始化AI服务...");
 				const aiService = await getAIService();
 				await aiService.initialize();
-				console.log('✅ AI服务初始化完成');
+				console.log("✅ AI服务初始化完成");
 
 				// 创建综合分析器（使用合并后的配置）
-				console.log('⚙️  合并分析配置...');
+				console.log("⚙️  合并分析配置...");
 				const mergedConfig = {
 					...config.analysis,
 					enableTechStack:
@@ -133,47 +126,54 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 					enableSummary:
 						analysisConfig.enableSummary ?? config.analysis.enableSummary,
 				};
-				console.log('📊 最终分析配置:', mergedConfig);
+				console.log("📊 最终分析配置:", mergedConfig);
 
 				// 创建综合分析器
-				console.log('🔬 创建综合分析器实例...');
+				console.log("🔬 创建综合分析器实例...");
 				const analyzer = new ComprehensiveAnalyzer(aiService, mergedConfig);
 
 				// 执行综合分析
-				console.log('🔍 开始执行综合分析...');
+				console.log("🔍 开始执行综合分析...");
 				const result = await analyzer.analyze(chatContent);
-				console.log('✅ 综合分析完成');
-				console.log('📊 分析结果概览:', {
+				console.log("✅ 综合分析完成");
+				console.log("📊 分析结果概览:", {
 					techStack: result.techStack?.primaryStack,
 					business: result.business?.business,
-					problemsCount: result.problems?.length || 0
+					problemsCount: result.problems?.length || 0,
 				});
 
 				// 分析完成
-				console.log('✅ 分析完成');
+				console.log("✅ 分析完成");
 
 				// 保存到数据库
-				console.log('🗄️  开始保存到数据库...');
+				console.log("🗄️  开始保存到数据库...");
 				try {
-					const dbId = await saveAnalysisResult(result, chatContent, filename);
+					const dbId = await saveAnalysisResult(result, chatContent, title);
 					console.log(`✅ 数据库保存成功，ID: ${dbId}`);
 				} catch (dbError) {
-					console.error('❌ 数据库保存失败，但文件保存成功:', dbError);
-					console.error('🔍 数据库错误详情:', {
-						name: dbError instanceof Error ? dbError.name : 'Unknown',
-						message: dbError instanceof Error ? dbError.message : String(dbError),
-						stack: dbError instanceof Error ? dbError.stack : undefined
+					console.error("❌ 数据库保存失败，但文件保存成功:", dbError);
+					console.error("🔍 数据库错误详情:", {
+						name: dbError instanceof Error ? dbError.name : "Unknown",
+						message:
+							dbError instanceof Error ? dbError.message : String(dbError),
+						stack: dbError instanceof Error ? dbError.stack : undefined,
 					});
 				}
 
 				return {
-				content: [
-					{
-						type: "text",
-						text: `✅ 综合分析完成！\n\n📊 **分析结果概览**:\n技术栈: ${result.techStack?.primaryStack || '未识别'}\n业务领域: ${result.business?.business || '未识别'}\n问题数量: ${result.problems?.length || 0}\n\n数据已保存到数据库中。`,
-					},
-				],
-			};
+					content: [
+						{
+							type: "text",
+							text: `✅ 综合分析完成！\n\n📊 **分析结果概览**:\n技术栈: ${
+								result.techStack?.primaryStack || "未识别"
+							}\n业务领域: ${
+								result.business?.business || "未识别"
+							}\n问题数量: ${
+								result.problems?.length || 0
+							}\n\n数据已保存到数据库中。`,
+						},
+					],
+				};
 			}
 
 			default:
@@ -198,22 +198,22 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 // 启动服务器的主函数
 const main = async (): Promise<void> => {
 	console.error("🔄 正在启动 AI协作档案分析器 v3.0...");
-	
+
 	// 检查数据库连接
 	try {
 		console.error("🗄️  检查数据库连接...");
-		const { prisma } = await import('./database.js');
+		const { prisma } = await import("./database.js");
 		await prisma.$connect();
 		await prisma.$queryRaw`SELECT 1`;
 		console.error("✅ 数据库连接正常");
 	} catch (dbError) {
 		console.error("⚠️  数据库连接失败，但服务器将继续启动:", dbError);
 		console.error("🔍 数据库错误详情:", {
-			name: dbError instanceof Error ? dbError.name : 'Unknown',
-			message: dbError instanceof Error ? dbError.message : String(dbError)
+			name: dbError instanceof Error ? dbError.name : "Unknown",
+			message: dbError instanceof Error ? dbError.message : String(dbError),
 		});
 	}
-	
+
 	// 检查配置文件
 	try {
 		console.error("⚙️  检查配置文件...");
@@ -222,16 +222,18 @@ const main = async (): Promise<void> => {
 		console.error("📋 当前配置:", {
 			aiProvider: config.ai.provider,
 			hasApiKey: !!config.ai.apiKey,
-			analysisModules: Object.entries(config.analysis).filter(([_, enabled]) => enabled).map(([key]) => key)
+			analysisModules: Object.entries(config.analysis)
+				.filter(([_, enabled]) => enabled)
+				.map(([key]) => key),
 		});
 	} catch (configError) {
 		console.error("⚠️  配置文件加载失败:", configError);
 	}
-	
+
 	console.error("🌐 启动 MCP 服务器...");
 	const transport = new StdioServerTransport();
 	await server.connect(transport);
-	
+
 	console.error("🚀 AI协作档案分析器 v3.0 MCP服务器已启动");
 	console.error(
 		"📋 支持功能: chat_summary - 聊天内容综合分析（技术栈、业务、标签、AI思考、问题分类、总结）"
