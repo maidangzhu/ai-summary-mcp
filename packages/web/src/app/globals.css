@@ -1,0 +1,297 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 94.1%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom scrollbar for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-secondary;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground rounded-md;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-accent-foreground;
+}
+
+/* 线条感设计增强 */
+.line-accent {
+  position: relative;
+}
+
+.line-accent::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to bottom, hsl(var(--primary)), transparent);
+  border-radius: 2px;
+}
+
+/* 卡片悬停效果 */
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+}
+
+/* 渐变边框效果 */
+.gradient-border {
+  position: relative;
+  background: hsl(var(--card));
+  border-radius: 0.5rem;
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)));
+  border-radius: inherit;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: xor;
+}
+
+/* 脉冲动画 */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* 文字渐变效果 */
+.text-gradient {
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 网格背景 */
+.grid-background {
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* 玻璃态效果 */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 发光效果 */
+.glow-effect {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+}
+
+/* 线条动画 */
+@keyframes line-draw {
+  from {
+    stroke-dashoffset: 1000;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.line-draw {
+  stroke-dasharray: 1000;
+  animation: line-draw 2s ease-in-out;
+}
+
+/* 数据可视化样式 */
+.chart-container {
+  background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--secondary)) 100%);
+}
+
+/* 状态指示器 */
+.status-indicator {
+  position: relative;
+}
+
+.status-indicator::before {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: hsl(var(--primary));
+  animation: pulse-glow 2s infinite;
+}
+
+/* 代码块增强 */
+.code-block-enhanced {
+  position: relative;
+  background: hsl(var(--secondary));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.code-block-enhanced::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, hsl(var(--primary)), transparent);
+}
+
+/* 交互式元素 */
+.interactive-element {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.interactive-element:hover {
+  transform: scale(1.02);
+  filter: brightness(1.1);
+}
+
+.interactive-element:active {
+  transform: scale(0.98);
+}
+
+/* 加载动画 */
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  background-size: 200px 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Markdown content styling */
+.markdown-content {
+  @apply text-foreground;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+  @apply font-semibold text-primary mb-4 mt-6;
+}
+
+.markdown-content h1 {
+  @apply text-2xl;
+}
+
+.markdown-content h2 {
+  @apply text-xl;
+}
+
+.markdown-content h3 {
+  @apply text-lg;
+}
+
+.markdown-content p {
+  @apply mb-4 leading-relaxed;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  @apply mb-4 ml-6;
+}
+
+.markdown-content li {
+  @apply mb-2;
+}
+
+.markdown-content code {
+  @apply bg-secondary px-2 py-1 rounded text-sm font-mono;
+}
+
+.markdown-content pre {
+  @apply bg-secondary p-4 rounded-lg overflow-x-auto mb-4;
+}
+
+.markdown-content pre code {
+  @apply bg-transparent p-0;
+}
+
+.markdown-content blockquote {
+  @apply border-l-4 border-primary pl-4 italic text-muted-foreground mb-4;
+}
+
+.markdown-content a {
+  @apply text-primary hover:underline;
+}
+
+.markdown-content table {
+  @apply w-full border-collapse mb-4;
+}
+
+.markdown-content th,
+.markdown-content td {
+  @apply border border-border px-4 py-2 text-left;
+}
+
+.markdown-content th {
+  @apply bg-secondary font-semibold;
+}

@@ -1,23 +1,21 @@
 {
-  "name": "daily-thoughts",
+  "name": "ai-collaboration-archive",
   "version": "3.0.0",
-  "description": "每日思考",
-  "main": "build/index.js",
+  "description": "AI协作档案分析器 - Monorepo",
+  "private": true,
   "type": "module",
-  "bin": {
-    "daily-thoughts": "./build/index.js"
-  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc && chmod 755 build/index.js",
-    "watch": "tsc --watch",
-    "start": "node build/index.js",
-    "dev": "pnpm run build && pnpm run start",
-    "clean": "rm -rf build"
+    "build": "pnpm -r build",
+    "dev": "pnpm -r dev",
+    "start": "pnpm -r start",
+    "clean": "pnpm -r clean",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio"
   },
-  "files": [
-    "build",
-    "README.md"
+  "workspaces": [
+    "packages/*"
   ],
   "keywords": [
     "mcp",
@@ -45,12 +43,8 @@
     "url": "https://github.com/your-username/ai-collaboration-archive-analyzer/issues"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.17.4",
     "@prisma/client": "^6.15.0",
-    "dotenv": "^17.2.2",
-    "pg": "^8.16.3",
-    "prisma": "^6.15.0",
-    "zod": "3"
+    "prisma": "^6.15.0"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",

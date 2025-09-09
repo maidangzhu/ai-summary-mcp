@@ -1,0 +1,49 @@
+{
+  "name": "@ai-collaboration-archive/mcp-server",
+  "version": "3.0.0",
+  "description": "AI协作档案分析器 - MCP服务器",
+  "main": "build/index.js",
+  "type": "module",
+  "bin": {
+    "daily-thoughts": "./build/index.js"
+  },
+  "scripts": {
+    "build": "tsc && chmod 755 build/index.js",
+    "watch": "tsc --watch",
+    "start": "node build/index.js",
+    "dev": "pnpm run build && pnpm run start",
+    "clean": "rm -rf build"
+  },
+  "files": [
+    "build",
+    "README.md"
+  ],
+  "keywords": [
+    "mcp",
+    "ai",
+    "analysis",
+    "collaboration",
+    "archive",
+    "tech-stack",
+    "business-analysis",
+    "problem-classification",
+    "solution-extraction",
+    "deepseek",
+    "openai",
+    "claude"
+  ],
+  "author": "zhujianye",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.4",
+    "@prisma/client": "^6.15.0",
+    "dotenv": "^17.2.2",
+    "pg": "^8.16.3",
+    "zod": "3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "@types/pg": "^8.11.10",
+    "typescript": "^5.9.2"
+  }
+}
