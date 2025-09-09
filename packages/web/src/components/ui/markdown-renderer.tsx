@@ -55,7 +55,7 @@ const CodeBlock = ({ children, className, inline }: CodeBlockProps) => {
         style={oneDark}
         language={language}
         PreTag="div"
-        className="!bg-secondary !rounded-lg !text-sm"
+        className="bg-secondary! rounded-lg! text-sm!"
         customStyle={{
           margin: 0,
           padding: '1rem',

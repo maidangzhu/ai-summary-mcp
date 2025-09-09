@@ -140,7 +140,7 @@ const HomePage = () => {
                   placeholder="搜索分析结果..."
                   value={searchTerm}
                   onChange={handleSearch}
-                  className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground"
+                  className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-md focus:outline-hidden focus:ring-2 focus:ring-primary/50 text-foreground"
                 />
               </div>
               
@@ -154,7 +154,7 @@ const HomePage = () => {
                   {['前端', '后端', 'AI/ML', 'DevOps', '数据库'].map((stack) => (
                     <Badge
                       key={stack}
-                      variant={selectedTechStack === stack ? 'default' : 'outline'}
+                      variant={selectedTechStack === stack ? 'default' : 'outline-solid'}
                       className="cursor-pointer hover:bg-primary/20 transition-colors"
                       onClick={() => handleTechStackFilter(stack)}
                     >
@@ -170,7 +170,7 @@ const HomePage = () => {
                   {['电商', '金融科技', '教育', '生产力工具', '开源'].map((business) => (
                     <Badge
                       key={business}
-                      variant={selectedBusiness === business ? 'default' : 'outline'}
+                      variant={selectedBusiness === business ? 'default' : 'outline-solid'}
                       className="cursor-pointer hover:bg-primary/20 transition-colors"
                       onClick={() => handleBusinessFilter(business)}
                     >

@@ -21,7 +21,7 @@ const ProfileCard = ({ profile, stats, className }: ProfileCardProps) => {
         <div className="flex flex-col md:flex-row items-start md:items-center gap-6 mb-8">
           <Avatar className="h-24 w-24 md:h-32 md:w-32 ring-2 ring-primary/20">
             <AvatarImage src={profile.avatar} alt={profile.name} />
-            <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-primary/20 to-secondary/20">
+            <AvatarFallback className="text-2xl font-bold bg-linear-to-br from-primary/20 to-secondary/20">
               {profile.name.slice(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
