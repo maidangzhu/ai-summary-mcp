@@ -81,45 +81,21 @@ export interface AIProviderConfig {
 // 技术栈分析结果
 export interface TechStackAnalysis {
   primaryStack: TechStack;
-  secondaryStacks: TechStack[];
-  technologies: string[];
-  frameworks: string[];
-  tools: string[];
-  confidence: number;
-  reasoning: string;
 }
 
 // 业务分析结果
 export interface BusinessAnalysis {
-  domain: BusinessDomain;
-  subDomains: string[];
-  businessGoals: string[];
-  userTypes: string[];
-  valueProposition: string;
-  marketContext: string;
-  confidence: number;
-  reasoning: string;
+  business: string;
 }
 
 // 标签分析结果
 export interface TagAnalysis {
-  primaryTags: TagType[];
-  customTags: string[];
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  urgency: 'low' | 'medium' | 'high' | 'immediate';
-  complexity: 'simple' | 'moderate' | 'complex' | 'expert';
-  reasoning: string;
+  tags: string[];
 }
 
 // AI对话思考分析
 export interface AIThoughtAnalysis {
   keyQuestions: string[];
-  reasoningProcess: string[];
-  assumptions: string[];
-  alternatives: string[];
-  recommendations: string[];
-  uncertainties: string[];
-  reasoning: string;
 }
 
 // 问题分类结果
@@ -133,27 +109,9 @@ export interface ProblemClassification {
   reasoning: string;
 }
 
-// 解决方案分析
-export interface SolutionAnalysis {
-  problemsSolved: string[];
-  solutionApproaches: string[];
-  implementationSteps: string[];
-  challenges: string[];
-  outcomes: string[];
-  lessonsLearned: string[];
-  reasoning: string;
-}
-
 // 总结分析
 export interface SummaryAnalysis {
-  keyPoints: string[];
-  mainAchievements: string[];
-  nextSteps: string[];
-  actionItems: string[];
-  decisions: string[];
-  risks: string[];
-  opportunities: string[];
-  reasoning: string;
+  summary: string;
 }
 
 // 综合分析结果
@@ -163,9 +121,7 @@ export interface ComprehensiveAnalysisResult {
   tags?: TagAnalysis;
   aiThoughts?: AIThoughtAnalysis;
   problems?: ProblemClassification[];
-  solutions?: SolutionAnalysis;
   summary?: SummaryAnalysis;
-  focusAreas: string[];
 }
 
 // AI API响应接口
@@ -184,7 +140,6 @@ export interface AnalysisConfig {
   enableTags: boolean;
   enableAIThoughts: boolean;
   enableProblems: boolean;
-  enableSolutions: boolean;
   enableSummary: boolean;
   customPrompts?: {
     techStack?: string;
@@ -192,7 +147,6 @@ export interface AnalysisConfig {
     tags?: string;
     aiThoughts?: string;
     problems?: string;
-    solutions?: string;
     summary?: string;
   };
 }

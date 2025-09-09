@@ -20,7 +20,6 @@ const DEFAULT_ANALYSIS_CONFIG: AnalysisConfig = {
 	enableTags: true,
 	enableAIThoughts: true,
 	enableProblems: true,
-	enableSolutions: true,
 	enableSummary: true,
 };
 
@@ -136,7 +135,6 @@ export const getConfigExample = (): Config => {
 			enableTags: true,
 			enableAIThoughts: true,
 			enableProblems: true,
-			enableSolutions: true,
 			enableSummary: true,
 			customPrompts: {
 				techStack: "自定义技术栈分析提示词",
@@ -144,7 +142,6 @@ export const getConfigExample = (): Config => {
 				tags: "自定义标签分析提示词",
 				aiThoughts: "自定义AI思考分析提示词",
 				problems: "自定义问题分类提示词",
-				solutions: "自定义解决方案分析提示词",
 				summary: "自定义总结分析提示词",
 			},
 		},

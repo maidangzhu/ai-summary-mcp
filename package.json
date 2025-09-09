@@ -1,11 +1,11 @@
 {
-  "name": "ai-collaboration-archive-analyzer",
+  "name": "daily-thoughts",
   "version": "3.0.0",
-  "description": "AI协作档案分析器 - 六维度智能分析系统，支持技术栈、业务、标签、AI思考、问题分类、解决方案等多维度分析",
+  "description": "每日思考",
   "main": "build/index.js",
   "type": "module",
   "bin": {
-    "ai-collaboration-analyzer": "./build/index.js"
+    "daily-thoughts": "./build/index.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -33,7 +33,7 @@
     "openai",
     "claude"
   ],
-  "author": "AI协作档案分析器团队",
+  "author": "zhujianye",
   "license": "MIT",
   "packageManager": "pnpm@10.8.1",
   "repository": {

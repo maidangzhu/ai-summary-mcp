@@ -12,16 +12,15 @@ const prisma = new PrismaClient({
 export const saveAnalysisResult = async (
   result: ComprehensiveAnalysisResult,
   chatContent: string,
-  filename?: string
+  title?: string
 ): Promise<string> => {
   console.log('🗄️  开始保存分析结果到数据库...');
   console.log('📊 数据概览:', {
-    filename,
+    title,
     chatContentLength: chatContent.length,
     techStack: result.techStack?.primaryStack,
-    businessDomain: result.business?.domain,
-    problemsCount: result.problems?.length || 0,
-    focusAreasCount: result.focusAreas?.length || 0
+    business: result.business?.business,
+    problemsCount: result.problems?.length || 0
   });
   
   try {
@@ -33,66 +32,23 @@ export const saveAnalysisResult = async (
     // 创建分析结果记录
     const analysisResult = await prisma.analysisResult.create({
       data: {
-        filename,
+        title,
         chatContent,
         
         // 技术栈分析
         primaryStack: result.techStack?.primaryStack,
-        secondaryStacks: result.techStack?.secondaryStacks || [],
-        technologies: result.techStack?.technologies || [],
-        frameworks: result.techStack?.frameworks || [],
-        tools: result.techStack?.tools || [],
-        techConfidence: result.techStack?.confidence,
-        techReasoning: result.techStack?.reasoning,
         
         // 业务分析
-        businessDomain: result.business?.domain,
-        subDomains: result.business?.subDomains || [],
-        businessGoals: result.business?.businessGoals || [],
-        userTypes: result.business?.userTypes || [],
-        valueProposition: result.business?.valueProposition,
-        marketContext: result.business?.marketContext,
-        businessConfidence: result.business?.confidence,
-        businessReasoning: result.business?.reasoning,
+        business: result.business?.business,
         
         // 标签分析
-        primaryTags: result.tags?.primaryTags?.map(tag => tag.toString()) || [],
-        customTags: result.tags?.customTags || [],
-        priority: result.tags?.priority,
-        urgency: result.tags?.urgency,
-        complexity: result.tags?.complexity,
-        tagReasoning: result.tags?.reasoning,
+        tags: result.tags?.tags || [],
         
         // AI思考分析
         keyQuestions: result.aiThoughts?.keyQuestions || [],
-        reasoningProcess: result.aiThoughts?.reasoningProcess || [],
-        assumptions: result.aiThoughts?.assumptions || [],
-        alternatives: result.aiThoughts?.alternatives || [],
-        recommendations: result.aiThoughts?.recommendations || [],
-        uncertainties: result.aiThoughts?.uncertainties || [],
-        aiThoughtReasoning: result.aiThoughts?.reasoning,
         
-        // 解决方案分析
-        problemsSolved: result.solutions?.problemsSolved || [],
-        solutionApproaches: result.solutions?.solutionApproaches || [],
-        implementationSteps: result.solutions?.implementationSteps || [],
-        challenges: result.solutions?.challenges || [],
-        outcomes: result.solutions?.outcomes || [],
-        lessonsLearned: result.solutions?.lessonsLearned || [],
-        solutionReasoning: result.solutions?.reasoning,
-        
-        // 总结分析
-        keyPoints: result.summary?.keyPoints || [],
-        mainAchievements: result.summary?.mainAchievements || [],
-        nextSteps: result.summary?.nextSteps || [],
-        actionItems: result.summary?.actionItems || [],
-        decisions: result.summary?.decisions || [],
-        risks: result.summary?.risks || [],
-        opportunities: result.summary?.opportunities || [],
-        summaryReasoning: result.summary?.reasoning,
-        
-        // 关注领域
-        focusAreas: result.focusAreas,
+        // 总结
+        summary: result.summary?.summary,
         
         // 创建关联的问题分类
         problems: {
@@ -117,7 +73,7 @@ export const saveAnalysisResult = async (
       id: analysisResult.id,
       createdAt: analysisResult.createdAt,
       problemsCreated: analysisResult.problems.length,
-      filename: analysisResult.filename
+      title: analysisResult.title
     });
     
     return analysisResult.id;
@@ -194,11 +150,7 @@ export const searchByTechStack = async (techStack: string) => {
   try {
     const results = await prisma.analysisResult.findMany({
       where: {
-        OR: [
-          { primaryStack: { contains: techStack, mode: 'insensitive' } },
-          { technologies: { has: techStack } },
-          { frameworks: { has: techStack } }
-        ]
+        primaryStack: { contains: techStack, mode: 'insensitive' }
       },
       include: {
         problems: true
@@ -215,11 +167,11 @@ export const searchByTechStack = async (techStack: string) => {
 };
 
 // 根据业务领域搜索分析结果
-export const searchByBusinessDomain = async (domain: string) => {
+export const searchByBusiness = async (business: string) => {
   try {
     const results = await prisma.analysisResult.findMany({
       where: {
-        businessDomain: { contains: domain, mode: 'insensitive' }
+        business: { contains: business, mode: 'insensitive' }
       },
       include: {
         problems: true
