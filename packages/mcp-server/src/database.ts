@@ -1,12 +1,9 @@
 // 数据库服务模块
-import { PrismaClient } from "@prisma/client";
+import prisma from "@downzoo/db";
 
 import { ComprehensiveAnalysisResult } from './types.js';
 
-// 创建Prisma客户端实例
-const prisma = new PrismaClient({
-  log: ['query', 'info', 'warn', 'error'],
-});
+// 使用共享 Prisma 客户端实例
 
 // 保存分析结果到数据库
 export const saveAnalysisResult = async (
