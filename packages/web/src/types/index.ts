@@ -11,6 +11,16 @@ export interface AnalysisResult {
   keyQuestions: string[]
   summary?: string
   problems: ProblemClassification[]
+  doc?: Doc
+  docId?: string
+}
+
+export interface Doc {
+  id: string
+  title: string
+  content: string
+  createdAt: Date
+  updatedAt: Date
 }
 
 export interface ProblemClassification {

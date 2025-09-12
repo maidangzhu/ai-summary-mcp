@@ -2,10 +2,11 @@
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Clock, Tag, AlertCircle, Briefcase, ChevronDown, ChevronUp } from "lucide-react"
+import { Clock, Tag, AlertCircle, Briefcase, ChevronDown, ChevronUp, FileText } from "lucide-react"
 import { AnalysisResult } from "@/types"
 import { formatRelativeTime, getStackColor, getBusinessColor, truncateText } from "@/lib/utils"
 import { useState } from "react"
+import DocDialog from "./doc-dialog"
 
 interface AnalysisCardProps {
   analysis: AnalysisResult
@@ -14,36 +15,70 @@ interface AnalysisCardProps {
 
 const AnalysisCard = ({ analysis, className }: AnalysisCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false)
+  const [docDialogOpen, setDocDialogOpen] = useState(false)
   
   const handleToggleExpand = () => {
     setIsExpanded(!isExpanded)
   }
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // 如果点击的是按钮或链接，不触发卡片点击
+    if ((e.target as HTMLElement).closest('button, a')) {
+      return
+    }
+    
+    // 如果有文档，打开文档对话框
+    if (analysis.doc || analysis.docId) {
+      setDocDialogOpen(true)
+    }
+  }
+
+  const handleOpenDoc = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setDocDialogOpen(true)
+  }
+
 
 
   return (
-    <Card className={`w-full card-hover border-l-4 border-l-primary/50 ${className}`}>
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-semibold text-foreground mb-2 line-clamp-2">
-              {analysis.title || '未命名分析'}
-            </h3>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                <span>{formatRelativeTime(analysis.createdAt)}</span>
+    <>
+      <Card 
+        className={`w-full card-hover border-l-4 border-l-primary/50 ${analysis.doc || analysis.docId ? 'cursor-pointer' : ''} ${className}`}
+        onClick={handleCardClick}
+      >
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start gap-2 mb-2">
+                <h3 className="text-lg font-semibold text-foreground line-clamp-2 flex-1">
+                  {analysis.title || '未命名分析'}
+                </h3>
+                {(analysis.doc || analysis.docId) && (
+                  <button
+                    onClick={handleOpenDoc}
+                    className="flex items-center gap-1 px-2 py-1 text-xs bg-primary/10 text-primary rounded-md hover:bg-primary/20 transition-colors flex-shrink-0"
+                    title="查看技术文档"
+                  >
+                    <FileText className="h-3 w-3" />
+                    文档
+                  </button>
+                )}
               </div>
-              {analysis.problems.length > 0 && (
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
-                  <AlertCircle className="h-3 w-3" />
-                  <span>{analysis.problems.length}个问题</span>
+                  <Clock className="h-3 w-3" />
+                  <span>{formatRelativeTime(analysis.createdAt)}</span>
                 </div>
-              )}
+                {analysis.problems.length > 0 && (
+                  <div className="flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    <span>{analysis.problems.length}个问题</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </CardHeader>
+        </CardHeader>
       
       <CardContent className="space-y-3">
         {/* 技术栈和业务标签 */}
@@ -139,6 +174,15 @@ const AnalysisCard = ({ analysis, className }: AnalysisCardProps) => {
         )}
       </CardContent>
     </Card>
+    
+    {/* 文档对话框 */}
+    <DocDialog
+      open={docDialogOpen}
+      onOpenChange={setDocDialogOpen}
+      doc={analysis.doc}
+      docId={analysis.docId}
+    />
+  </>
   )
 }
 

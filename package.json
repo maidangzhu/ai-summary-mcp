@@ -5,10 +5,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm -r build",
-    "dev": "pnpm -r dev",
-    "start": "pnpm -r start",
-    "clean": "pnpm -r clean",
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "check-types": "turbo run check-types",
     "db:generate": "prisma generate --schema=./packages/db/prisma/schema.prisma",
     "db:push": "prisma db push --schema=./packages/db/prisma/schema.prisma",
     "db:migrate": "prisma migrate dev --schema=./packages/db/prisma/schema.prisma",
@@ -48,6 +49,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.3.0",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "turbo": "^2.5.6"
   }
 }
