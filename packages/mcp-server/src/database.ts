@@ -5,19 +5,15 @@ import { ComprehensiveAnalysisResult } from './types.js';
 
 // 使用共享 Prisma 客户端实例
 
-// 保存分析结果到数据库
-export const saveAnalysisResult = async (
-  result: ComprehensiveAnalysisResult,
-  chatContent: string,
-  title?: string
+// 创建技术文档
+export const createDoc = async (
+  title: string,
+  content: string
 ): Promise<string> => {
-  console.log('🗄️  开始保存分析结果到数据库...');
-  console.log('📊 数据概览:', {
+  console.log('📄 开始创建技术文档...');
+  console.log('📋 文档信息:', {
     title,
-    chatContentLength: chatContent.length,
-    techStack: result.techStack?.primaryStack,
-    business: result.business?.business,
-    problemsCount: result.problems?.length || 0
+    contentLength: content.length
   });
   
   try {
@@ -25,12 +21,75 @@ export const saveAnalysisResult = async (
     await prisma.$connect();
     console.log('✅ 数据库连接正常');
     
+    console.log('💾 创建文档记录...');
+    const doc = await prisma.doc.create({
+      data: {
+        title,
+        content
+      }
+    });
+    
+    console.log(`✅ 技术文档已创建`);
+    console.log('📋 文档详情:', {
+      id: doc.id,
+      title: doc.title,
+      createdAt: doc.createdAt
+    });
+    
+    return doc.id;
+  } catch (error) {
+    console.error('❌ 创建技术文档时出错:', error);
+    console.error('🔍 错误详细信息:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      code: (error as any)?.code,
+      meta: (error as any)?.meta
+    });
+    
+    throw error;
+  }
+};
+
+// 保存分析结果到数据库
+export const saveAnalysisResult = async (
+  result: ComprehensiveAnalysisResult,
+  chatContent: string,
+  title?: string,
+  docTitle?: string,
+  docContent?: string
+): Promise<string> => {
+  console.log('🗄️  开始保存分析结果到数据库...');
+  console.log('📊 数据概览:', {
+    title,
+    chatContentLength: chatContent.length,
+    techStack: result.techStack?.primaryStack,
+    business: result.business?.business,
+    problemsCount: result.problems?.length || 0,
+    hasDoc: !!(docTitle && docContent)
+  });
+  
+  try {
+    console.log('🔗 检查数据库连接状态...');
+    await prisma.$connect();
+    console.log('✅ 数据库连接正常');
+    
+    // 如果提供了文档信息，先创建文档
+    let docId: string | undefined;
+    if (docTitle && docContent) {
+      console.log('📄 创建关联的技术文档...');
+      docId = await createDoc(docTitle, docContent);
+      console.log(`✅ 技术文档创建成功，ID: ${docId}`);
+    }
+    
     console.log('💾 创建分析结果记录...');
     // 创建分析结果记录
     const analysisResult = await prisma.analysisResult.create({
       data: {
         title,
         chatContent,
+        
+        // 关联的技术文档ID
+        docId,
         
         // 技术栈分析
         primaryStack: result.techStack?.primaryStack,
@@ -55,7 +114,8 @@ export const saveAnalysisResult = async (
         }
       },
       include: {
-        problems: true
+        problems: true,
+        doc: true
       }
     });
     
@@ -64,7 +124,9 @@ export const saveAnalysisResult = async (
       id: analysisResult.id,
       createdAt: analysisResult.createdAt,
       problemsCreated: analysisResult.problems.length,
-      title: analysisResult.title
+      title: analysisResult.title,
+      docId: analysisResult.docId,
+      docTitle: analysisResult.doc?.title
     });
     
     return analysisResult.id;
@@ -89,13 +151,107 @@ export const saveAnalysisResult = async (
   }
 };
 
+// 根据ID获取技术文档
+export const getDoc = async (id: string) => {
+  try {
+    const doc = await prisma.doc.findUnique({
+      where: { id },
+      include: {
+        analysisResults: {
+          include: {
+            problems: true
+          }
+        }
+      }
+    });
+    return doc;
+  } catch (error) {
+    console.error('❌ 获取技术文档时出错:', error);
+    throw error;
+  }
+};
+
+// 获取所有技术文档（分页）
+export const getAllDocs = async (page = 1, limit = 10) => {
+  try {
+    const skip = (page - 1) * limit;
+    const [docs, total] = await Promise.all([
+      prisma.doc.findMany({
+        skip,
+        take: limit,
+        orderBy: {
+          createdAt: 'desc'
+        },
+        include: {
+          analysisResults: {
+            include: {
+              problems: true
+            }
+          }
+        }
+      }),
+      prisma.doc.count()
+    ]);
+    
+    return {
+      docs,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit)
+    };
+  } catch (error) {
+    console.error('❌ 获取技术文档列表时出错:', error);
+    throw error;
+  }
+};
+
+// 根据标题搜索技术文档
+export const searchDocsByTitle = async (title: string) => {
+  try {
+    const docs = await prisma.doc.findMany({
+      where: {
+        title: { contains: title, mode: 'insensitive' }
+      },
+      include: {
+        analysisResults: {
+          include: {
+            problems: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+    return docs;
+  } catch (error) {
+    console.error('❌ 按标题搜索技术文档时出错:', error);
+    throw error;
+  }
+};
+
+// 删除技术文档
+export const deleteDoc = async (id: string) => {
+  try {
+    await prisma.doc.delete({
+      where: { id }
+    });
+    console.log(`✅ 技术文档已删除，ID: ${id}`);
+  } catch (error) {
+    console.error('❌ 删除技术文档时出错:', error);
+    throw error;
+  }
+};
+
 // 根据ID获取分析结果
 export const getAnalysisResult = async (id: string) => {
   try {
     const result = await prisma.analysisResult.findUnique({
       where: { id },
       include: {
-        problems: true
+        problems: true,
+        doc: true
       }
     });
     return result;
@@ -117,7 +273,8 @@ export const getAllAnalysisResults = async (page = 1, limit = 10) => {
           createdAt: 'desc'
         },
         include: {
-          problems: true
+          problems: true,
+          doc: true
         }
       }),
       prisma.analysisResult.count()
@@ -144,7 +301,8 @@ export const searchByTechStack = async (techStack: string) => {
         primaryStack: { contains: techStack, mode: 'insensitive' }
       },
       include: {
-        problems: true
+        problems: true,
+        doc: true
       },
       orderBy: {
         createdAt: 'desc'
@@ -165,7 +323,8 @@ export const searchByBusiness = async (business: string) => {
         business: { contains: business, mode: 'insensitive' }
       },
       include: {
-        problems: true
+        problems: true,
+        doc: true
       },
       orderBy: {
         createdAt: 'desc'

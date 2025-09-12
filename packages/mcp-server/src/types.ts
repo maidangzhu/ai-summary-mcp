@@ -108,6 +108,21 @@ export interface SummaryAnalysis {
   summary: string;
 }
 
+// 技术文档接口
+export interface Doc {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// 创建文档请求接口
+export interface CreateDocRequest {
+  title: string;
+  content: string;
+}
+
 // 综合分析结果
 export interface ComprehensiveAnalysisResult {
   techStack?: TechStackAnalysis;

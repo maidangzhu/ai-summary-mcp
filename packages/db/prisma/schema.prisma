@@ -13,6 +13,21 @@ datasource db {
   url      = env("DIRECT_URL")
 }
 
+// 技术文档模型
+model Doc {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  // 文档标题
+  title     String
+  // 文档内容（Markdown格式）
+  content   String   @db.Text
+  // 关联的分析结果
+  analysisResults AnalysisResult[]
+
+  @@map("docs")
+}
+
 // AI协作档案分析结果模型
 model AnalysisResult {
   id        String   @id @default(cuid())
@@ -21,6 +36,8 @@ model AnalysisResult {
   // 基本信息
   title       String?
   chatContent String  @db.Text
+  // 关联的技术文档ID
+  docId       String?
   // 技术栈分析
   primaryStack String?
   // 业务分析
@@ -33,6 +50,8 @@ model AnalysisResult {
   summary String? @db.Text
   // 关联的问题分类
   problems ProblemClassification[]
+  // 关联的技术文档
+  doc Doc? @relation(fields: [docId], references: [id], onDelete: SetNull)
 
   @@map("analysis_results")
 }

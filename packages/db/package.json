@@ -12,10 +12,10 @@
     "dev": "tsc -w"
   },
   "dependencies": {
-    "@prisma/client": "^5.20.0"
+    "@prisma/client": "^6.15.0"
   },
   "devDependencies": {
-    "prisma": "^5.20.0",
+    "prisma": "^6.15.0",
     "typescript": "^5.4.0"
   }
 }

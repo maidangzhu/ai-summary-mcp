@@ -7,7 +7,7 @@ import os from "os";
 // 默认配置
 const DEFAULT_AI_CONFIG: AIProviderConfig = {
 	provider: "deepseek",
-	apiKey: process.env.DEEPSEEK_API_KEY,
+	apiKey: process.env.DEEPSEEK_API_KEY!,
 	baseUrl: "https://api.deepseek.com/v1/chat/completions",
 	model: "deepseek-chat",
 	temperature: 0.7,

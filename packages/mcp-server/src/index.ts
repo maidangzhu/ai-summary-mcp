@@ -31,19 +31,27 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 	return {
 		tools: [
 			{
-				name: "chat_summary",
+				name: "bug_summary",
 				description:
-					"分析聊天内容并生成包含用户的问题、技术栈、业务、标签、AI思考、问题分类、解决方案和总结的综合分析报告",
+					"分析Bug修复相关的聊天内容，生成包含技术栈、业务、标签、AI思考、问题分类和总结的综合分析报告，并生成技术文档",
 				inputSchema: {
 					type: "object",
 					properties: {
 						chatContent: {
 							type: "string",
-							description: "需要分析的聊天内容",
+							description: "需要分析的Bug修复聊天内容",
 						},
 						title: {
 							type: "string",
 							description: "分析报告的标题",
+						},
+						docTitle: {
+							type: "string",
+							description: "技术文档的标题",
+						},
+						docContent: {
+							type: "string",
+							description: "技术文档的Markdown内容",
 						},
 						analysisConfig: {
 							type: "object",
@@ -71,15 +79,19 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 	try {
 		switch (name) {
-			case "chat_summary": {
-				console.log("🔍 开始执行聊天内容分析...");
+			case "bug_summary": {
+				console.log("🔍 开始执行Bug修复内容分析...");
 				const {
 					chatContent,
 					title,
+					docTitle,
+					docContent,
 					analysisConfig = {},
 				} = args as {
 					chatContent: string;
 					title?: string;
+					docTitle?: string;
+					docContent?: string;
 					analysisConfig?: {
 						enableTechStack?: boolean;
 						enableBusiness?: boolean;
@@ -90,8 +102,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 					};
 				};
 
-				console.log(`📝 聊天内容长度: ${chatContent?.length || 0} 字符`);
+				console.log(`📝 Bug修复内容长度: ${chatContent?.length || 0} 字符`);
 				console.log(`📁 指定标题: ${title || "未指定"}`);
+				console.log(`📄 文档标题: ${docTitle || "未指定"}`);
+				console.log(`📝 文档内容长度: ${docContent?.length || 0} 字符`);
 				console.log(`⚙️  分析配置:`, analysisConfig);
 
 				if (!chatContent) {
@@ -148,10 +162,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 				// 保存到数据库
 				console.log("🗄️  开始保存到数据库...");
 				try {
-					const dbId = await saveAnalysisResult(result, chatContent, title);
+					const dbId = await saveAnalysisResult(result, chatContent, title, docTitle, docContent);
 					console.log(`✅ 数据库保存成功，ID: ${dbId}`);
 				} catch (dbError) {
-					console.error("❌ 数据库保存失败，但文件保存成功:", dbError);
+					console.error("❌ 数据库保存失败，但分析完成:", dbError);
 					console.error("🔍 数据库错误详情:", {
 						name: dbError instanceof Error ? dbError.name : "Unknown",
 						message:
@@ -164,13 +178,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 					content: [
 						{
 							type: "text",
-							text: `✅ 综合分析完成！\n\n📊 **分析结果概览**:\n技术栈: ${
+							text: `✅ Bug修复分析完成！\n\n📊 **分析结果概览**:\n技术栈: ${
 								result.techStack?.primaryStack || "未识别"
 							}\n业务领域: ${
 								result.business?.business || "未识别"
 							}\n问题数量: ${
 								result.problems?.length || 0
-							}\n\n数据已保存到数据库中。`,
+							}${docTitle ? `\n📄 技术文档: ${docTitle}` : ""}\n\n数据已保存到数据库中。`,
 						},
 					],
 				};
@@ -236,7 +250,7 @@ const main = async (): Promise<void> => {
 
 	console.error("🚀 AI协作档案分析器 v3.0 MCP服务器已启动");
 	console.error(
-		"📋 支持功能: chat_summary - 聊天内容综合分析（技术栈、业务、标签、AI思考、问题分类、总结）"
+		"📋 支持功能: bug_summary - Bug修复内容综合分析（技术栈、业务、标签、AI思考、问题分类、总结、技术文档）"
 	);
 	console.error("⚙️  支持配置: 多AI提供商、自定义API、模块化分析");
 	console.error("📊 数据库功能: 分析结果持久化存储");
