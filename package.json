@@ -1,7 +1,7 @@
 {
-  "name": "ai-collaboration-archive",
+  "name": "dig-in",
   "version": "3.0.0",
-  "description": "AI协作档案分析器 - Monorepo",
+  "description": "让你的思考有迹可循",
   "private": true,
   "type": "module",
   "scripts": {
