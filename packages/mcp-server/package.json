@@ -1,6 +1,6 @@
 {
-  "name": "@downzoo/mcp-server",
-  "version": "6.0.0",
+  "name": "bug-summary-mcp-server",
+  "version": "7.0.0",
   "description": "AI协作档案分析器 - MCP服务器，基于 Model Context Protocol 的 AI 协作档案分析服务器，专门用于分析 Bug 修复相关的聊天内容",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -44,20 +44,7 @@
     "typescript",
     "nodejs"
   ],
-  "author": {
-    "name": "zhujianye",
-    "email": "zhujianye@example.com"
-  },
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/zhujianye/ai-collaboration-archive.git",
-    "directory": "packages/mcp-server"
-  },
-  "homepage": "https://github.com/zhujianye/ai-collaboration-archive/tree/main/packages/mcp-server#readme",
-  "bugs": {
-    "url": "https://github.com/zhujianye/ai-collaboration-archive/issues"
-  },
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
