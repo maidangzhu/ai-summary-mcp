@@ -16,7 +16,8 @@
     "db:studio": "prisma studio --schema=./packages/db/prisma/schema.prisma"
   },
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "apps/*"
   ],
   "keywords": [
     "mcp",
