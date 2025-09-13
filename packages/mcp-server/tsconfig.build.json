@@ -13,9 +13,7 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "baseUrl": ".",
-    "paths": {
-      "@downzoo/db": ["../db/src"]
-    }
+    "typeRoots": ["node_modules/@types", "src/types"]
   },
   "include": [
     "src/**/*"

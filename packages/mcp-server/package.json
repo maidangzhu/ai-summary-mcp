@@ -1,6 +1,6 @@
 {
   "name": "bug-report-mcp-server",
-  "version": "7.0.0",
+  "version": "7.0.1",
   "description": "AI协作档案分析器 - MCP服务器，基于 Model Context Protocol 的 AI 协作档案分析服务器，专门用于分析 Bug 修复相关的聊天内容",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -9,14 +9,15 @@
     "downzoo-mcp-server": "./build/index.js"
   },
   "scripts": {
-    "build": "tsc && chmod 755 build/index.js",
+    "build": "node scripts/build.js && chmod 755 build/index.js",
+    "build:types": "tsc --project tsconfig.build.json",
     "watch": "tsc --watch",
     "start": "node build/index.js",
     "dev": "pnpm run build && pnpm run start",
     "clean": "rm -rf build",
-    "prepublishOnly": "pnpm run clean && pnpm run build && pnpm run test:publish",
+    "prepublishOnly": "pnpm run clean && pnpm run build && pnpm run build:types && pnpm run test:publish",
     "test:publish": "node scripts/check-publish.js",
-    "prepack": "pnpm run build"
+    "prepack": "pnpm run build && pnpm run build:types"
   },
   "files": [
     "build",
@@ -67,15 +68,16 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.4",
-    "@downzoo/db": "^1.0.0",
-    "@prisma/client": "^6.15.0",
     "dotenv": "^17.2.2",
     "pg": "^8.16.3",
     "zod": "3"
   },
   "devDependencies": {
+    "@downzoo/db": "workspace:*",
+    "@prisma/client": "^6.15.0",
     "@types/node": "^24.3.0",
     "@types/pg": "^8.11.10",
+    "esbuild": "^0.19.0",
     "typescript": "^5.9.2"
   }
 }
