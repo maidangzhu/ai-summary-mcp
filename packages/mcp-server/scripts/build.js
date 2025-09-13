@@ -31,6 +31,14 @@ try {
     define: {
       'process.env.NODE_ENV': '"production"'
     },
+    // 添加 banner 来处理 ESM 环境下的 require
+    banner: {
+      js: 'import { createRequire } from "module"; const require = createRequire(import.meta.url);'
+    },
+    // 优化模块解析
+    mainFields: ['module', 'main'],
+    // 处理 node 内置模块
+    packages: 'external',
     // 启用 source map 以便调试
     sourcemap: false,
     // 压缩代码
