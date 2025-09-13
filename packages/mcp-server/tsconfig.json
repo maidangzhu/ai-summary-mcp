@@ -12,10 +12,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "baseUrl": ".",
-    "paths": {
-      "@downzoo/db": ["../db/src"]
-    }
+    "baseUrl": "."
   },
   "include": [
     "src/**/*"

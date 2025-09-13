@@ -1,6 +1,6 @@
 {
   "name": "bug-report-mcp-server",
-  "version": "7.0.6",
+  "version": "7.0.7",
   "description": "AI协作档案分析器 - MCP服务器，基于 Model Context Protocol 的 AI 协作档案分析服务器，专门用于分析 Bug 修复相关的聊天内容",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -70,14 +70,15 @@
     "@modelcontextprotocol/sdk": "^1.17.4",
     "dotenv": "^17.2.2",
     "pg": "^8.16.3",
-    "zod": "3"
+    "zod": "3",
+    "@prisma/client": "^6.15.0"
   },
   "devDependencies": {
-    "@downzoo/db": "workspace:*",
     "@prisma/client": "^6.15.0",
     "@types/node": "^24.3.0",
     "@types/pg": "^8.11.10",
     "esbuild": "^0.19.0",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "prisma": "^6.15.0"
   }
 }

@@ -10,7 +10,6 @@
     "clean": "rm -rf .next"
   },
   "dependencies": {
-    "@downzoo/db": "workspace:*",
     "@prisma/client": "^6.15.0",
     "@radix-ui/react-avatar": "^1.0.4",
     "@radix-ui/react-dialog": "^1.1.15",

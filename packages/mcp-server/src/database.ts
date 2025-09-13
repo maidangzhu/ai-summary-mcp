@@ -1,5 +1,5 @@
 // 数据库服务模块
-import prisma from "@downzoo/db";
+import prisma from "./db";
 
 import { ComprehensiveAnalysisResult } from './types.js';
 
