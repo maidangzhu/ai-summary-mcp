@@ -39,11 +39,6 @@ try {
     keepNames: true
   });
 
-  // 手动添加 shebang 行到生成的文件开头
-  const builtContent = readFileSync(outfile, 'utf8');
-  const contentWithShebang = `#!/usr/bin/env node\n${builtContent}`;
-  writeFileSync(outfile, contentWithShebang, 'utf8');
-
   console.log('✅ Build completed successfully');
 } catch (error) {
   console.error('❌ Build failed:', error);
