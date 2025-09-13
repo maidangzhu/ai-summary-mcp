@@ -1,6 +1,6 @@
 {
   "name": "bug-report-mcp-server",
-  "version": "7.0.1",
+  "version": "7.0.2",
   "description": "AI协作档案分析器 - MCP服务器，基于 Model Context Protocol 的 AI 协作档案分析服务器，专门用于分析 Bug 修复相关的聊天内容",
   "main": "build/index.js",
   "types": "build/index.d.ts",
