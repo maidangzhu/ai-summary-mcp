@@ -5,12 +5,11 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'AI协作档案 | AI Collaboration Archive',
-  description: '展示AI协作过程中解决的问题和技术成长轨迹',
-  keywords: ['AI', '协作', '档案', '技术', '成长', 'collaboration', 'archive'],
+  title: 'document | 档案',
+  description: '让你的努力有迹可循',
+  keywords: ['档案', '技术', '成长', 'archive', 'effort', 'trace', 'bug', 'rolution'],
   authors: [{ name: 'zhujianye' }],
   viewport: 'width=device-width, initial-scale=1',
-  themeColor: '#0f172a',
 }
 
 const RootLayout = ({

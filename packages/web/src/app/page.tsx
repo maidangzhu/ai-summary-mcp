@@ -4,8 +4,7 @@ import { useEffect, useState } from 'react'
 import ProfileCard from '@/components/profile/profile-card'
 import AnalysisCard from '@/components/analysis/analysis-card'
 import { AnalysisResult, ProfileData, StatsData } from '@/types'
-import { Loader2, Search, Filter } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { Loader2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 
 // Mock数据
@@ -120,32 +119,12 @@ const HomePage = () => {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 space-y-8">
         {/* 个人资料卡片 */}
-        {/* {stats && (
+        {stats && (
           <ProfileCard 
             profile={mockProfile} 
-            stats={stats}
             className="mb-8"
           />
-        )} */}
-        
-        {/* 搜索和筛选 */}
-        <Card>
-          <CardContent className="p-0 border-none">
-            <div className="space-y-4">
-              {/* 搜索框 */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="搜索分析结果..."
-                  value={searchTerm}
-                  onChange={handleSearch}
-                  className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-md focus:outline-hidden focus:ring-2 focus:ring-primary/50 text-foreground"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        )}
         
         {/* 分析结果列表 */}
         <div className="space-y-6">
