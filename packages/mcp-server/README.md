@@ -21,11 +21,11 @@
 ## 📦 安装
 
 ```bash
-npm install @ai-collaboration-archive/mcp-server
+npm install @downzoo/mcp-server
 # 或者
-pnpm add @ai-collaboration-archive/mcp-server
+pnpm add @downzoo/mcp-server
 # 或者
-yarn add @ai-collaboration-archive/mcp-server
+yarn add @downzoo/mcp-server
 ```
 
 ## 🛠️ 使用方法
@@ -35,9 +35,9 @@ yarn add @ai-collaboration-archive/mcp-server
 1. **安装并启动服务器**:
 
 ```bash
-npx @ai-collaboration-archive/mcp-server
+npx @downzoo/mcp-server
 # 或者全局安装
-npm install -g @ai-collaboration-archive/mcp-server
+npm install -g @downzoo/mcp-server
 daily-thoughts
 ```
 
@@ -50,7 +50,7 @@ daily-thoughts
   "mcpServers": {
     "daily-thoughts-analyzer": {
       "command": "npx",
-      "args": ["@ai-collaboration-archive/mcp-server"]
+      "args": ["@downzoo/mcp-server"]
     }
   }
 }
@@ -59,8 +59,8 @@ daily-thoughts
 ### 作为 Node.js 模块使用
 
 ```typescript
-import { ComprehensiveAnalyzer } from '@ai-collaboration-archive/mcp-server';
-import { getAIService } from '@ai-collaboration-archive/mcp-server';
+import { ComprehensiveAnalyzer } from '@downzoo/mcp-server';
+import { getAIService } from '@downzoo/mcp-server';
 
 // 初始化 AI 服务
 const aiService = await getAIService();
@@ -228,7 +228,7 @@ function saveAnalysisResult(
 ### 基本使用
 
 ```typescript
-import { ComprehensiveAnalyzer, getAIService } from '@ai-collaboration-archive/mcp-server';
+import { ComprehensiveAnalyzer, getAIService } from '@downzoo/mcp-server';
 
 const chatContent = `
 用户: 我的 React 应用在生产环境下出现了内存泄漏问题
@@ -278,7 +278,7 @@ const result = await analyzer.analyze(chatContent);
 ### 与数据库集成
 
 ```typescript
-import { saveAnalysisResult } from '@ai-collaboration-archive/mcp-server';
+import { saveAnalysisResult } from '@downzoo/mcp-server';
 
 // 执行分析
 const result = await analyzer.analyze(chatContent);

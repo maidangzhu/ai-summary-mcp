@@ -1,5 +1,5 @@
 {
-  "name": "@ai-collaboration-archive/web",
+  "name": "@downzoo/web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
