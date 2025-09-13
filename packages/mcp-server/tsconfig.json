@@ -2,18 +2,33 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
-    "moduleResolution": "Bundler",
+    "moduleResolution": "Node",
     "outDir": "./build",
     "rootDir": "./src",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
     "strict": true,
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmitOnError": true,
+    "preserveWatchOutput": true,
     "baseUrl": ".",
     "paths": {
       "@downzoo/db": ["../db/dist"]
-    }
+    },
+    "lib": ["ES2022", "DOM"]
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "**/*.spec.ts"]
+  "exclude": [
+    "node_modules",
+    "build",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "**/__tests__/**"
+  ]
 }

@@ -1,8 +1,9 @@
 {
   "name": "@ai-collaboration-archive/mcp-server",
   "version": "3.0.0",
-  "description": "AI协作档案分析器 - MCP服务器",
+  "description": "AI协作档案分析器 - MCP服务器，基于 Model Context Protocol 的 AI 协作档案分析服务器，专门用于分析 Bug 修复相关的聊天内容",
   "main": "build/index.js",
+  "types": "build/index.d.ts",
   "type": "module",
   "bin": {
     "daily-thoughts": "./build/index.js"
@@ -12,14 +13,20 @@
     "watch": "tsc --watch",
     "start": "node build/index.js",
     "dev": "pnpm run build && pnpm run start",
-    "clean": "rm -rf build"
+    "clean": "rm -rf build",
+    "prepublishOnly": "pnpm run clean && pnpm run build && pnpm run test:publish",
+    "test:publish": "node scripts/check-publish.js",
+    "prepack": "pnpm run build"
   },
   "files": [
     "build",
-    "README.md"
+    "README.md",
+    "LICENSE",
+    "mcp-config.json"
   ],
   "keywords": [
     "mcp",
+    "model-context-protocol",
     "ai",
     "analysis",
     "collaboration",
@@ -28,12 +35,36 @@
     "business-analysis",
     "problem-classification",
     "solution-extraction",
+    "bug-analysis",
+    "chat-analysis",
     "deepseek",
     "openai",
-    "claude"
+    "claude",
+    "anthropic",
+    "typescript",
+    "nodejs"
   ],
-  "author": "zhujianye",
+  "author": {
+    "name": "zhujianye",
+    "email": "zhujianye@example.com"
+  },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zhujianye/ai-collaboration-archive.git",
+    "directory": "packages/mcp-server"
+  },
+  "homepage": "https://github.com/zhujianye/ai-collaboration-archive/tree/main/packages/mcp-server#readme",
+  "bugs": {
+    "url": "https://github.com/zhujianye/ai-collaboration-archive/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.4",
     "@downzoo/db": "workspace:*",
