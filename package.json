@@ -35,14 +35,6 @@
   "author": "zhujianye",
   "license": "MIT",
   "packageManager": "pnpm@10.8.1",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/your-username/ai-collaboration-archive-analyzer.git"
-  },
-  "homepage": "https://github.com/your-username/ai-collaboration-archive-analyzer#readme",
-  "bugs": {
-    "url": "https://github.com/your-username/ai-collaboration-archive-analyzer/issues"
-  },
   "dependencies": {
     "@prisma/client": "^6.15.0",
     "prisma": "^6.15.0"
