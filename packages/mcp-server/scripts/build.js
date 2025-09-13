@@ -1,5 +1,5 @@
 import { build } from 'esbuild';
-import { readFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -18,17 +18,16 @@ const external = [
 ];
 
 try {
+  const outfile = join(projectRoot, 'build/index.js');
+  
   await build({
     entryPoints: [join(projectRoot, 'src/index.ts')],
     bundle: true,
     platform: 'node',
     target: 'node18',
     format: 'esm',
-    outfile: join(projectRoot, 'build/index.js'),
+    outfile,
     external,
-    banner: {
-      js: '#!/usr/bin/env node'
-    },
     define: {
       'process.env.NODE_ENV': '"production"'
     },
@@ -39,6 +38,11 @@ try {
     // 保持函数名称以便调试
     keepNames: true
   });
+
+  // 手动添加 shebang 行到生成的文件开头
+  const builtContent = readFileSync(outfile, 'utf8');
+  const contentWithShebang = `#!/usr/bin/env node\n${builtContent}`;
+  writeFileSync(outfile, contentWithShebang, 'utf8');
 
   console.log('✅ Build completed successfully');
 } catch (error) {
