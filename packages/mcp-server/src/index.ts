@@ -200,23 +200,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 // 启动服务器的主函数
 const main = async (): Promise<void> => {
-	console.error("🔄 正在启动 AI协作档案分析器 v3.0...");
-
-	// 检查数据库连接
-	try {
-		console.error("🗄️  检查数据库连接...");
-		const { prisma } = await import("./database.js");
-		await prisma.$connect();
-		await prisma.$queryRaw`SELECT 1`;
-		console.error("✅ 数据库连接正常");
-	} catch (dbError) {
-		console.error("⚠️  数据库连接失败，但服务器将继续启动:", dbError);
-		console.error("🔍 数据库错误详情:", {
-			name: dbError instanceof Error ? dbError.name : "Unknown",
-			message: dbError instanceof Error ? dbError.message : String(dbError),
-		});
-	}
-
 	// 检查配置文件
 	try {
 		console.error("⚙️  检查配置文件...");
@@ -238,11 +221,6 @@ const main = async (): Promise<void> => {
 	await server.connect(transport);
 
 	console.error("🚀 AI协作档案分析器 v3.0 MCP服务器已启动");
-	console.error(
-		"📋 支持功能: bug_summary - Bug修复内容综合分析（技术栈、业务、标签、AI思考、问题分类、总结、技术文档）"
-	);
-	console.error("⚙️  支持配置: 多AI提供商、自定义API、模块化分析");
-	console.error("📊 数据库功能: 分析结果持久化存储");
 };
 
 // 优雅关闭
