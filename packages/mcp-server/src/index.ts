@@ -161,18 +161,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 				// 保存到数据库
 				console.log("🗄️  开始保存到数据库...");
-				try {
-					const dbId = await saveAnalysisResult(result, chatContent, title, docTitle, docContent);
-					console.log(`✅ 数据库保存成功，ID: ${dbId}`);
-				} catch (dbError) {
-					console.error("❌ 数据库保存失败，但分析完成:", dbError);
-					console.error("🔍 数据库错误详情:", {
-						name: dbError instanceof Error ? dbError.name : "Unknown",
-						message:
-							dbError instanceof Error ? dbError.message : String(dbError),
-						stack: dbError instanceof Error ? dbError.stack : undefined,
-					});
-				}
+				saveAnalysisResult(result, chatContent, title, docTitle, docContent);
 
 				return {
 					content: [
@@ -182,9 +171,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 								result.techStack?.primaryStack || "未识别"
 							}\n业务领域: ${
 								result.business?.business || "未识别"
-							}\n问题数量: ${
-								result.problems?.length || 0
-							}${docTitle ? `\n📄 技术文档: ${docTitle}` : ""}\n\n数据已保存到数据库中。`,
+							}\n问题数量: ${result.problems?.length || 0}${
+								docTitle ? `\n📄 技术文档: ${docTitle}` : ""
+							}\n\n数据已保存到数据库中。`,
 						},
 					],
 				};
