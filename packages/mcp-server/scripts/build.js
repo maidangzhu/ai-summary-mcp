@@ -11,10 +11,7 @@ const packageJson = JSON.parse(readFileSync(join(projectRoot, 'package.json'), '
 
 // 保留这些作为外部依赖，不进行 bundle
 const external = [
-  '@modelcontextprotocol/sdk',
-  'dotenv',
-  'pg',
-  'zod'
+  '@modelcontextprotocol/sdk'
 ];
 
 try {
